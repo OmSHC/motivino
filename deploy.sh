@@ -33,7 +33,7 @@ docker-compose -f docker-compose.prod.yml exec backend python manage.py collects
 
 # Create superuser if it doesn't exist
 echo "👤 Creating admin user..."
-docker-compose -f docker-compose.prod.yml exec backend python manage.py create_admin
+docker-compose -f docker-compose.prod.yml exec backend python manage.py create_admin --email=admin@example.com --password=admin123
 
 echo "✅ Deployment completed!"
 echo ""
