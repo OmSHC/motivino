@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Interactive Student Motivation News{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .endpoints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .endpoint-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s ease;
+        }
+
+        .endpoint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .endpoint-card h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .endpoint-card p {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .endpoint-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+
+        .endpoint-link:hover {
+            background: #5a67d8;
+        }
+
+        .features-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .features-list li {
+            background: #e6fffa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #38b2ac;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .features-list li i {
+            color: #38b2ac;
+            margin-right: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+
+        .next-steps {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .next-steps h3 {
+            color: #c53030;
+            margin-bottom: 15px;
+        }
+
+        .next-steps ol {
+            color: #4a5568;
+            padding-left: 20px;
+        }
+
+        .next-steps li {
+            margin-bottom: 8px;
+        }
+
+        .api-docs {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .api-docs h3 {
+            color: #2f855a;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .endpoints-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-graduation-cap"></i> Student Motivation News</h1>
+            <p>Inspiring students with daily motivational content</p>
+        </div>
+
+        {% block content %}
+        <div class="card">
+            <h2><i class="fas fa-rocket"></i> Welcome to Our Platform</h2>
+            <p>This is a Django-based web application providing daily motivational content for students in grades 1-12. Our platform features Google OAuth2 authentication, grade-based content filtering, and AI-powered content generation.</p>
+            
+            <div class="status-badge">
+                <i class="fas fa-check-circle"></i> Server is running successfully!
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-link"></i> Available Endpoints</h2>
+            <div class="endpoints-grid">
+                <div class="endpoint-card">
+                    <h3><i class="fas fa-cog"></i> Admin Interface</h3>
+                    <p>Manage users, content, and system settings</p>
+                    <a href="/admin/" class="endpoint-link">Access Admin</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3><i class="fas fa-book"></i> API Documentation</h3>
+                    <p>Complete API reference and endpoints</p>
+                    <a href="/api/" class="endpoint-link">View API Docs</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3><i class="fas fa-newspaper"></i> Content API</h3>
+                    <p>Access motivational content and quotes</p>
+                    <a href="/api/content/" class="endpoint-link">Content API</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3><i class="fas fa-users"></i> User Management</h3>
+                    <p>User profiles and authentication</p>
+                    <a href="/api/users/" class="endpoint-link">User API</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-star"></i> Key Features</h2>
+            <ul class="features-list">
+                <li><i class="fas fa-shield-alt"></i> Google OAuth2 Authentication</li>
+                <li><i class="fas fa-filter"></i> Grade-based Content Filtering</li>
+                <li><i class="fas fa-robot"></i> AI-powered Content Generation</li>
+                <li><i class="fas fa-chart-line"></i> User Visit Tracking</li>
+                <li><i class="fas fa-bookmark"></i> Bookmark System</li>
+                <li><i class="fas fa-user-shield"></i> Admin Content Management</li>
+            </ul>
+        </div>
+
+        <div class="next-steps">
+            <h3><i class="fas fa-tasks"></i> Next Development Steps</h3>
+            <ol>
+                <li>Configure Google OAuth2 credentials</li>
+                <li>Set up OpenAI API key for content generation</li>
+                <li>Install and configure Redis for Celery</li>
+                <li>Build React frontend with modern UI</li>
+            </ol>
+        </div>
+
+        <div class="api-docs">
+            <h3><i class="fas fa-code"></i> Quick API Test</h3>
+            <p>Test the API endpoints with these sample requests:</p>
+            <div class="code-block">
+curl -H "Authorization: Bearer &lt;token&gt;" http://127.0.0.1:8000/api/content/
+curl -H "Authorization: Bearer &lt;token&gt;" http://127.0.0.1:8000/api/content/quote/
+curl -H "Authorization: Bearer &lt;token&gt;" http://127.0.0.1:8000/api/users/me/
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 Interactive Student Motivation News. Built with Django & React.</p>
+    </div>
+</body>
+</html>

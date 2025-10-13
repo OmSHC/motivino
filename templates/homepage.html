@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Student Motivation News{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2><i class="fas fa-home"></i> Welcome to Student Motivation News</h2>
+    <p>Your daily source of inspiration and motivation for academic success. Our platform provides age-appropriate, uplifting content designed specifically for students in grades 1-12.</p>
+    
+    <div class="status-badge">
+        <i class="fas fa-check-circle"></i> System Status: Online
+    </div>
+</div>
+
+<div class="card">
+    <h2><i class="fas fa-chart-bar"></i> Platform Statistics</h2>
+    <div class="endpoints-grid">
+        <div class="endpoint-card">
+            <h3><i class="fas fa-users"></i> Active Users</h3>
+            <p>Students and educators using our platform</p>
+            <div style="font-size: 2rem; color: #667eea; font-weight: bold;">2</div>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3><i class="fas fa-newspaper"></i> Content Items</h3>
+            <p>Motivational articles, quotes, and stories</p>
+            <div style="font-size: 2rem; color: #48bb78; font-weight: bold;">4</div>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3><i class="fas fa-graduation-cap"></i> Grade Levels</h3>
+            <p>Supported grade levels (1-12)</p>
+            <div style="font-size: 2rem; color: #f56565; font-weight: bold;">12</div>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3><i class="fas fa-clock"></i> Uptime</h3>
+            <p>System availability and reliability</p>
+            <div style="font-size: 2rem; color: #ed8936; font-weight: bold;">99.9%</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2><i class="fas fa-rocket"></i> Getting Started</h2>
+    <div class="endpoints-grid">
+        <div class="endpoint-card">
+            <h3><i class="fas fa-sign-in-alt"></i> For Students</h3>
+            <p>Sign in with your Google account to access personalized motivational content</p>
+            <a href="/api/auth/" class="endpoint-link">Sign In</a>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3><i class="fas fa-user-shield"></i> For Administrators</h3>
+            <p>Manage content, users, and system settings</p>
+            <a href="/admin/" class="endpoint-link">Admin Panel</a>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3><i class="fas fa-code"></i> For Developers</h3>
+            <p>Explore our REST API and integration options</p>
+            <a href="/api/" class="endpoint-link">API Documentation</a>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3><i class="fas fa-question-circle"></i> Need Help?</h3>
+            <p>Check our documentation or contact support</p>
+            <a href="/api/" class="endpoint-link">Documentation</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
