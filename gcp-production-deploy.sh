@@ -27,6 +27,13 @@ set +a
 
 echo "🔧 Setting up production environment..."
 
+# Create necessary directories
+echo "📁 Creating directories..."
+sudo mkdir -p /opt/motivino/logs /opt/motivino/staticfiles /opt/motivino/media
+
+# Set proper permissions
+sudo chown -R $USER:$USER /opt/motivino/logs /opt/motivino/staticfiles /opt/motivino/media
+
 # Build and start services
 echo "🐳 Building Docker images..."
 sudo docker-compose -f docker-compose.prod.yml build
