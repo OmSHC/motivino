@@ -35,6 +35,8 @@ staticfiles/
 .env.development.local
 .env.test.local
 .env.production.local
+# Template file (allowed)
+!.env.template
 
 # Virtual environments
 venv/

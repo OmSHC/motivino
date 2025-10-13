@@ -34,4 +34,4 @@ USER django
 EXPOSE 8000
 
 # Run the application with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--chdir", "/app", "motivation_news.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--chdir", "/app", "motivation_news.wsgi:application", "--log-file", "-"]
