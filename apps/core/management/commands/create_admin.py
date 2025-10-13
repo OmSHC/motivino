@@ -19,15 +19,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         email = options['email']
         password = options['password']
-        first_name = options.get('first_name', '')
-        last_name = options.get('last_name', '')
-        
+        first_name = options.get('first_name') or 'Admin'
+        last_name = options.get('last_name') or 'User'
+
         if User.objects.filter(email=email).exists():
             self.stdout.write(
                 self.style.WARNING(f'User with email {email} already exists')
             )
             return
-        
+
         user = User.objects.create_user(
             username=email,  # Use email as username
             email=email,

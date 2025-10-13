@@ -55,7 +55,7 @@ sudo docker-compose -f docker-compose.prod.yml exec backend python manage.py col
 
 # Create admin user
 echo "👤 Creating admin user..."
-sudo docker-compose -f docker-compose.prod.yml exec backend python manage.py create_admin --email=admin@example.com --password=admin123
+sudo docker-compose -f docker-compose.prod.yml exec backend python manage.py create_admin --email=admin@example.com --password=admin123 --first-name=Admin --last-name=User
 
 echo "✅ Production deployment complete!"
 echo ""
