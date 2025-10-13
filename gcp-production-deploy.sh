@@ -36,7 +36,7 @@ sudo chown -R $USER:$USER /opt/motivino/logs /opt/motivino/staticfiles /opt/moti
 
 # Build and start services
 echo "🐳 Building Docker images..."
-sudo docker-compose -f docker-compose.prod.yml build
+sudo docker-compose -f docker-compose.prod.yml build --no-cache
 
 echo "🚀 Starting services..."
 sudo docker-compose -f docker-compose.prod.yml up -d
