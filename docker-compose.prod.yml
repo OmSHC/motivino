@@ -30,6 +30,7 @@ services:
     restart: unless-stopped
 
   backend:
+    image: ${BACKEND_IMAGE:-motivation-backend:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -60,6 +61,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: ${FRONTEND_IMAGE:-motivation-frontend:latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile

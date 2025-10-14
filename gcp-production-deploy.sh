@@ -89,9 +89,25 @@ docker-compose -f docker-compose.prod.yml down || true
 log "🧹 Cleaning up Docker resources..."
 docker system prune -f
 
-# Build Docker images
-log "🐳 Building Docker images..."
-docker-compose -f docker-compose.prod.yml build --no-cache
+# Handle Docker images
+log "🐳 Setting up Docker images..."
+if [ "$USE_REGISTRY" = "true" ] && [ -n "$REGISTRY_URL" ]; then
+    log "   📥 Pulling pre-built images from registry: $REGISTRY_URL"
+    log "   💡 This is the fastest option for production!"
+    export BACKEND_IMAGE="$REGISTRY_URL/motivation-backend:latest"
+    export FRONTEND_IMAGE="$REGISTRY_URL/motivation-frontend:latest"
+    docker-compose -f docker-compose.prod.yml pull
+elif [ "$FORCE_REBUILD" = "true" ]; then
+    log "   🔄 Force rebuilding all images (--no-cache)..."
+    docker-compose -f docker-compose.prod.yml build --no-cache
+    echo "$(date +%s)" > .last_build
+else
+    log "   ⚡ Building with layer caching (fastest for local development)..."
+    log "   💡 Tip: Set FORCE_REBUILD=true to force full rebuild"
+    log "   💡 Tip: Set USE_REGISTRY=true and REGISTRY_URL=gcr.io/project-id for production"
+    docker-compose -f docker-compose.prod.yml build
+    echo "$(date +%s)" > .last_build
+fi
 
 # Start database and redis first
 log "🚀 Starting database and Redis..."
@@ -155,7 +171,9 @@ echo "   View logs: docker-compose -f docker-compose.prod.yml logs -f"
 echo "   View specific service logs: docker-compose -f docker-compose.prod.yml logs -f <service>"
 echo "   Stop services: docker-compose -f docker-compose.prod.yml down"
 echo "   Restart services: docker-compose -f docker-compose.prod.yml restart"
-echo "   Update: git pull && ./gcp-production-deploy.sh"
+echo "   Quick update (no rebuild): docker-compose -f docker-compose.prod.yml up -d"
+echo "   Force rebuild: FORCE_REBUILD=true ./gcp-production-deploy.sh"
+echo "   Use registry: USE_REGISTRY=true REGISTRY_URL=gcr.io/project-id ./gcp-production-deploy.sh"
 echo ""
 # Health check
 log "🔍 Running health checks..."
