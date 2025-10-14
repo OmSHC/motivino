@@ -17,10 +17,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
+# NOTE: requirements.txt should be copied before source code for better Docker layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
+# Copy project (after dependencies to maximize cache hits)
 COPY . .
 
 # Create directories for logs and static files
