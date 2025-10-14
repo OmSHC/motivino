@@ -1,5 +1,5 @@
-# Use Node.js 18 LTS with multi-stage build
-FROM node:18-alpine AS builder
+# Use Node.js 18 LTS for building
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies (including dev dependencies for building)
 RUN npm ci
 
 # Copy source code
@@ -16,24 +16,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine AS production
+# Create output directory for build artifacts
+RUN mkdir -p /app/build_output
 
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application from builder stage
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/public ./public
-
-# Expose port
-EXPOSE 3000
-
-# Start the application
-CMD ["npm", "start"]
+# Copy build artifacts to output directory
+CMD ["cp", "-r", "build/*", "/app/build_output/"]

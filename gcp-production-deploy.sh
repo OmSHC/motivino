@@ -1,22 +1,58 @@
 #!/bin/bash
 
+set -e  # Exit on any error
+
 echo "🚀 Production Deployment on GCP VM..."
 
-# Fix Docker permissions first
-echo "🔧 Setting up Docker permissions..."
-if ! docker --version > /dev/null 2>&1; then
-    echo "Docker not found. Installing Docker..."
+# Function to log with timestamp
+log() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to wait for service health
+wait_for_service() {
+    local service=$1
+    local max_attempts=30
+    local attempt=1
+
+    log "⏳ Waiting for $service to be healthy..."
+    while [ $attempt -le $max_attempts ]; do
+        if docker-compose -f docker-compose.prod.yml ps $service | grep -q "healthy\|running"; then
+            log "✅ $service is ready!"
+            return 0
+        fi
+        log "   Attempt $attempt/$max_attempts: $service not ready yet..."
+        sleep 10
+        ((attempt++))
+    done
+
+    log "❌ $service failed to start properly"
+    return 1
+}
+
+# Check if Docker is installed
+if ! command_exists docker; then
+    log "🔧 Installing Docker..."
     curl -fsSL https://get.docker.com -o get-docker.sh
     sudo sh get-docker.sh
     sudo usermod -aG docker $USER
-    echo "Please logout and login again, then run this script again"
+    log "✅ Docker installed. Please logout and login again, then run this script again"
     exit 1
 fi
 
 # Check if .env file exists
 if [ ! -f .env ]; then
-    echo "❌ .env file not found!"
-    echo "Please create .env file with your production settings first"
+    log "❌ .env file not found!"
+    log "Please create .env file with your production settings first"
+    echo "Required variables:"
+    echo "  SECRET_KEY=your-secret-key"
+    echo "  DATABASE_PASSWORD=your-database-password"
+    echo "  DOMAIN=your-domain.com (optional)"
     exit 1
 fi
 
@@ -25,47 +61,122 @@ set -a
 source .env
 set +a
 
-echo "🔧 Setting up production environment..."
+log "🔧 Setting up production environment..."
 
-# Create necessary directories
-echo "📁 Creating directories..."
+# Create necessary directories with proper permissions
+log "📁 Creating directories..."
 sudo mkdir -p /opt/motivino/logs /opt/motivino/staticfiles /opt/motivino/media
-
-# Set proper permissions
 sudo chown -R $USER:$USER /opt/motivino/logs /opt/motivino/staticfiles /opt/motivino/media
 
-# Build and start services
-echo "🐳 Building Docker images..."
-sudo docker-compose -f docker-compose.prod.yml build --no-cache
+# Stop any existing containers
+log "🛑 Stopping existing containers..."
+docker-compose -f docker-compose.prod.yml down || true
 
-echo "🚀 Starting services..."
-sudo docker-compose -f docker-compose.prod.yml up -d
+# Clean up unused Docker resources
+log "🧹 Cleaning up Docker resources..."
+docker system prune -f
 
-# Wait for services to be ready
-echo "⏳ Waiting for services to start..."
-sleep 30
+# Build Docker images
+log "🐳 Building Docker images..."
+docker-compose -f docker-compose.prod.yml build --no-cache
 
-# Run migrations
-echo "🗄️ Running database migrations..."
-sudo docker-compose -f docker-compose.prod.yml exec backend python manage.py migrate
+# Start database and redis first
+log "🚀 Starting database and Redis..."
+docker-compose -f docker-compose.prod.yml up -d db redis
+
+# Wait for database and Redis to be ready
+wait_for_service db
+wait_for_service redis
+
+# Start backend service
+log "🚀 Starting backend service..."
+docker-compose -f docker-compose.prod.yml up -d backend
+
+# Wait for backend to be ready
+wait_for_service backend
+
+# Run database migrations
+log "🗄️ Running database migrations..."
+docker-compose -f docker-compose.prod.yml exec -T backend python manage.py migrate
 
 # Collect static files
-echo "📁 Collecting static files..."
-sudo docker-compose -f docker-compose.prod.yml exec backend python manage.py collectstatic --noinput
+log "📁 Collecting static files..."
+docker-compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
 
-# Create admin user
-echo "👤 Creating admin user..."
-sudo docker-compose -f docker-compose.prod.yml exec backend python manage.py create_admin --email=admin@example.com --password=admin123 --first-name=Admin --last-name=User
+# Build frontend
+log "🔨 Building frontend..."
+docker-compose -f docker-compose.prod.yml up frontend
 
-echo "✅ Production deployment complete!"
+# Start nginx
+log "🚀 Starting nginx..."
+docker-compose -f docker-compose.prod.yml up -d nginx
+
+# Wait for nginx to be ready
+wait_for_service nginx
+
+# Create admin user if specified
+if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
+    log "👤 Creating admin user..."
+    docker-compose -f docker-compose.prod.yml exec -T backend python manage.py create_admin \
+        --email="$ADMIN_EMAIL" \
+        --password="$ADMIN_PASSWORD" \
+        --first-name="${ADMIN_FIRST_NAME:-Admin}" \
+        --last-name="${ADMIN_LAST_NAME:-User}" || true
+else
+    log "⚠️  Admin user not created. Set ADMIN_EMAIL and ADMIN_PASSWORD in .env to create one."
+fi
+
+# Get server IP
+SERVER_IP=$(curl -s --connect-timeout 5 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}' || echo "localhost")
+
+log "✅ Production deployment complete!"
 echo ""
 echo "🌐 Application URLs:"
-echo "   Frontend: http://$(curl -s ifconfig.me)"
-echo "   Backend API: http://$(curl -s ifconfig.me)/api"
-echo "   Admin: http://$(curl -s ifconfig.me)/admin"
+echo "   Frontend: http://$SERVER_IP"
+echo "   Backend API: http://$SERVER_IP/api"
+echo "   Admin: http://$SERVER_IP/admin"
+echo "   Health Check: http://$SERVER_IP/health"
 echo ""
 echo "🔧 Useful commands:"
-echo "   View logs: sudo docker-compose -f docker-compose.prod.yml logs -f"
-echo "   Stop services: sudo docker-compose -f docker-compose.prod.yml down"
-echo "   Restart: sudo docker-compose -f docker-compose.prod.yml restart"
-echo "   Update: git pull && sudo docker-compose -f docker-compose.prod.yml up --build -d"
+echo "   View logs: docker-compose -f docker-compose.prod.yml logs -f"
+echo "   View specific service logs: docker-compose -f docker-compose.prod.yml logs -f <service>"
+echo "   Stop services: docker-compose -f docker-compose.prod.yml down"
+echo "   Restart services: docker-compose -f docker-compose.prod.yml restart"
+echo "   Update: git pull && ./gcp-production-deploy.sh"
+echo ""
+# Health check
+log "🔍 Running health checks..."
+echo ""
+echo "📊 Service Status:"
+docker-compose -f docker-compose.prod.yml ps
+
+echo ""
+echo "🏥 Health Check Results:"
+# Test nginx
+if curl -f -s http://localhost/health/ > /dev/null 2>&1; then
+    echo "✅ Nginx: OK"
+else
+    echo "❌ Nginx: FAILED"
+fi
+
+# Test backend API
+if curl -f -s http://localhost/api/ > /dev/null 2>&1; then
+    echo "✅ Backend API: OK"
+else
+    echo "❌ Backend API: FAILED"
+fi
+
+# Test frontend
+if curl -f -s -I http://localhost/ | grep -q "200\|301\|302"; then
+    echo "✅ Frontend: OK"
+else
+    echo "❌ Frontend: FAILED"
+fi
+
+echo ""
+echo "🎯 Deployment Summary:"
+echo "   - All services should be running"
+echo "   - Frontend served via nginx at http://$SERVER_IP"
+echo "   - API available at http://$SERVER_IP/api"
+echo "   - Admin panel at http://$SERVER_IP/admin"
+echo "   - Health check at http://$SERVER_IP/health"

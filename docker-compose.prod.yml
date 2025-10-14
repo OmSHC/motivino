@@ -63,17 +63,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://backend:8000/api
+      - REACT_APP_API_URL=/api
+      - CI=false
+    volumes:
+      - frontend_build:/app/build_output
+    restart: "no"
     depends_on:
       - backend
-    volumes:
-      - ./frontend/src:/app/src:ro
-      - ./frontend/public:/app/public:ro
-      - frontend_build:/app/build
-    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -88,6 +85,12 @@ services:
       - backend
       - frontend
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:
