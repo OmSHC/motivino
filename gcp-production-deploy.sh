@@ -199,8 +199,10 @@ wait_for_service backend
 log "🚀 Starting nginx..."
 docker-compose -f docker-compose.prod.yml up -d nginx
 
-# Wait for nginx to be ready
-wait_for_service nginx
+# Give nginx a moment to start (no health check for nginx)
+log "⏳ Waiting for nginx to start..."
+sleep 5
+log "✅ Nginx started"
 
 # Create admin user if specified
 if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
@@ -255,6 +257,13 @@ if curl -f -s http://localhost/api/ > /dev/null 2>&1; then
     echo "✅ Backend API: OK"
 else
     echo "❌ Backend API: FAILED"
+fi
+
+# Test nginx health endpoint
+if curl -f -s http://localhost/health/ | grep -q "healthy"; then
+    echo "✅ Nginx: OK"
+else
+    echo "❌ Nginx: FAILED"
 fi
 
 # Test frontend
