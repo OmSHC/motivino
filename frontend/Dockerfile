@@ -13,11 +13,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
-
-# Create output directory for build artifacts
+# Create build output directory
 RUN mkdir -p /app/build_output
 
-# Copy build artifacts to output directory
-CMD ["cp", "-r", "build/*", "/app/build_output/"]
+# Default command: build and copy to output directory
+CMD ["sh", "-c", "echo 'Building React app...' && npm run build && echo 'Copying build files...' && cp -r build/* /app/build_output/ && echo 'Frontend build complete!'"]

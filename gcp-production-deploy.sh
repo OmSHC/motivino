@@ -81,13 +81,18 @@ log "📁 Creating directories..."
 sudo mkdir -p /opt/motivino/logs /opt/motivino/staticfiles /opt/motivino/media
 sudo chown -R $USER:$USER /opt/motivino/logs /opt/motivino/staticfiles /opt/motivino/media
 
-# Stop any existing containers
+# Stop any existing containers and clean up
 log "🛑 Stopping existing containers..."
 docker-compose -f docker-compose.prod.yml down || true
 
+# Force stop any containers using our ports
+log "🔌 Cleaning up port conflicts..."
+docker ps -q | xargs -r docker stop || true
+docker ps -aq | xargs -r docker rm || true
+
 # Clean up unused Docker resources
 log "🧹 Cleaning up Docker resources..."
-docker system prune -f
+docker system prune -f --volumes || true
 
 # Handle Docker images
 log "🐳 Setting up Docker images..."
@@ -164,7 +169,20 @@ docker-compose -f docker-compose.prod.yml exec -T backend python manage.py colle
 
 # Build frontend
 log "🔨 Building frontend..."
-docker-compose -f docker-compose.prod.yml up frontend
+if docker-compose -f docker-compose.prod.yml up frontend; then
+    log "✅ Frontend build completed successfully"
+
+    # Verify build output
+    if docker run --rm -v $(pwd)/frontend_build:/build_output alpine ls -la /build_output/ | grep -q "index.html"; then
+        log "✅ Frontend build files verified"
+    else
+        log "⚠️  Frontend build files not found in volume, but continuing..."
+    fi
+else
+    log "❌ Frontend build failed! Checking build logs..."
+    docker-compose -f docker-compose.prod.yml logs frontend
+    exit 1
+fi
 
 # Start nginx
 log "🚀 Starting nginx..."

@@ -79,6 +79,7 @@ services:
     restart: "no"
     depends_on:
       - backend
+    command: ["sh", "-c", "echo 'Building React app...' && npm run build && echo 'Copying build files...' && cp -r build/* /app/build_output/ && echo 'Frontend build complete!'"]
 
   nginx:
     image: nginx:alpine
