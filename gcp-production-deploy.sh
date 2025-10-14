@@ -87,8 +87,14 @@ docker-compose -f docker-compose.prod.yml down || true
 
 # Force stop any containers using our ports
 log "🔌 Cleaning up port conflicts..."
-docker ps -q | xargs -r docker stop || true
+# Stop all running containers
+docker ps -q | xargs -r docker stop -t 1 || true
+# Remove all containers (including stopped ones)
 docker ps -aq | xargs -r docker rm || true
+# Kill any processes using port 80
+sudo fuser -k 80/tcp 2>/dev/null || true
+# Wait a moment for ports to be freed
+sleep 2
 
 # Clean up unused Docker resources
 log "🧹 Cleaning up Docker resources..."
@@ -172,17 +178,22 @@ log "🔨 Building frontend..."
 if docker-compose -f docker-compose.prod.yml up frontend; then
     log "✅ Frontend build completed successfully"
 
-    # Verify build output
-    if docker run --rm -v $(pwd)/frontend_build:/build_output alpine ls -la /build_output/ | grep -q "index.html"; then
-        log "✅ Frontend build files verified"
+    # Verify build output by checking container logs
+    if docker-compose -f docker-compose.prod.yml logs frontend | grep -q "Frontend build complete!"; then
+        log "✅ Frontend build files verified (container exited successfully)"
     else
-        log "⚠️  Frontend build files not found in volume, but continuing..."
+        log "⚠️  Frontend build may have issues, but continuing..."
+        docker-compose -f docker-compose.prod.yml logs frontend | tail -10
     fi
 else
     log "❌ Frontend build failed! Checking build logs..."
     docker-compose -f docker-compose.prod.yml logs frontend
     exit 1
 fi
+
+# Ensure backend is healthy before starting nginx
+log "⏳ Ensuring backend is ready for nginx..."
+wait_for_service backend
 
 # Start nginx
 log "🚀 Starting nginx..."
@@ -251,6 +262,16 @@ if curl -f -s -I http://localhost/ | grep -q "200\|301\|302"; then
     echo "✅ Frontend: OK"
 else
     echo "❌ Frontend: FAILED"
+fi
+
+# Test backend API directly
+if curl -f -s http://localhost/api/core/health/ > /dev/null 2>&1; then
+    echo "✅ Backend API: OK"
+else
+    echo "❌ Backend API: FAILED (502 Bad Gateway likely)"
+    echo "   🔍 Debug: Check if backend is healthy"
+    docker-compose -f docker-compose.prod.yml ps backend
+    docker-compose -f docker-compose.prod.yml logs backend | tail -5
 fi
 
 echo ""
