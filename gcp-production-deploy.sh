@@ -56,9 +56,22 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables
+# Load environment variables using a more portable method
 set -a
-source .env
+if [ -f .env ]; then
+    while IFS='=' read -r key value; do
+        # Skip empty lines and comments
+        case $key in
+            ''|\#*) continue ;;
+        esac
+        # Remove quotes from value if present
+        value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+        export "$key=$value"
+    done < .env
+    log "✅ Environment variables loaded from .env"
+else
+    log "⚠️  .env file not found, using environment defaults"
+fi
 set +a
 
 log "🔧 Setting up production environment..."
