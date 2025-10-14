@@ -121,7 +121,10 @@ wait_for_service redis
 log "🚀 Starting backend service..."
 docker-compose -f docker-compose.prod.yml up -d backend
 
-# Wait for backend to be ready
+# Wait for backend to be ready (give it more time since it needs to run migrations)
+log "⏳ Waiting for backend to start up (this may take a minute due to migrations)..."
+sleep 45  # Give the backend time to start up before checking health
+
 wait_for_service backend
 
 # Run database migrations

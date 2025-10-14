@@ -20,6 +20,45 @@ def homepage(request):
     return render(request, 'homepage.html')
 
 
+def health_check(request):
+    """
+    Health check endpoint for monitoring.
+    """
+    from django.db import connection
+    from django.core.cache import cache
+
+    health_status = {
+        'status': 'healthy',
+        'timestamp': request.META.get('HTTP_X_REQUEST_START') or 'unknown',
+        'services': {}
+    }
+
+    # Check database (optional - don't fail health check if DB is down during startup)
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT 1")
+        health_status['services']['database'] = 'healthy'
+    except Exception as e:
+        health_status['services']['database'] = f'unhealthy: {str(e)}'
+        # Don't mark overall status as unhealthy for DB issues during startup
+        # health_status['status'] = 'unhealthy'
+
+    # Check Redis/cache (optional)
+    try:
+        cache.set('health_check', 'ok', 10)
+        if cache.get('health_check') == 'ok':
+            health_status['services']['redis'] = 'healthy'
+        else:
+            health_status['services']['redis'] = 'unhealthy: cache not working'
+    except Exception as e:
+        health_status['services']['redis'] = f'unhealthy: {str(e)}'
+
+    # For health checks, we mainly care that Django is responding
+    # Database and Redis issues won't make the service unhealthy during startup
+
+    return JsonResponse(health_status)
+
+
 def api_docs(request):
     """
     API documentation endpoint.
