@@ -83,17 +83,43 @@ sudo chown -R $USER:$USER /opt/motivino/logs /opt/motivino/staticfiles /opt/moti
 
 # Stop any existing containers and clean up
 log "🛑 Stopping existing containers..."
-docker-compose -f docker-compose.prod.yml down || true
+docker-compose -f docker-compose.prod.yml down || log "⚠️  No existing containers to stop"
+
+# Check current Docker status
+log "📊 Current Docker status:"
+docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -10
 
 # Force stop any containers using our ports
 log "🔌 Cleaning up port conflicts..."
-# Stop all running containers
-docker ps -q | xargs -r docker stop -t 1 || true
-# Remove all containers (including stopped ones)
-docker ps -aq | xargs -r docker rm || true
-# Kill any processes using port 80
-sudo fuser -k 80/tcp 2>/dev/null || true
+log "   Checking for running containers..."
+RUNNING_CONTAINERS=$(docker ps -q | wc -l)
+if [ "$RUNNING_CONTAINERS" -gt 0 ]; then
+    log "   Found $RUNNING_CONTAINERS running containers, stopping them..."
+    docker ps -q | xargs -r docker stop -t 1 || true
+else
+    log "   No running containers found"
+fi
+
+log "   Checking for stopped containers..."
+STOPPED_CONTAINERS=$(docker ps -aq | wc -l)
+if [ "$STOPPED_CONTAINERS" -gt 0 ]; then
+    log "   Found $STOPPED_CONTAINERS stopped containers, removing them..."
+    docker ps -aq | xargs -r docker rm || true
+else
+    log "   No stopped containers to remove"
+fi
+
+# Check for processes using port 80
+log "   Checking for processes using port 80..."
+if sudo netstat -tulpn 2>/dev/null | grep -q ":80 "; then
+    log "   Found processes using port 80, killing them..."
+    sudo fuser -k 80/tcp 2>/dev/null || true
+else
+    log "   No processes using port 80"
+fi
+
 # Wait a moment for ports to be freed
+log "   Waiting for ports to be freed..."
 sleep 2
 
 # Clean up unused Docker resources
@@ -102,6 +128,10 @@ docker system prune -f --volumes || true
 
 # Handle Docker images
 log "🐳 Setting up Docker images..."
+
+# Check current image status
+log "   📊 Checking existing Docker images..."
+docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep -E "(motivation|REPOSITORY)" | head -5
 
 # Check if we should skip image building entirely
 if [ "$SKIP_BUILD" = "true" ]; then
@@ -112,11 +142,19 @@ elif [ "$USE_REGISTRY" = "true" ] && [ -n "$REGISTRY_URL" ]; then
     log "   💡 This is the fastest option for production!"
     export BACKEND_IMAGE="$REGISTRY_URL/motivation-backend:latest"
     export FRONTEND_IMAGE="$REGISTRY_URL/motivation-frontend:latest"
-    docker-compose -f docker-compose.prod.yml pull
+    log "   Pulling backend image..."
+    docker-compose -f docker-compose.prod.yml pull backend || log "   ❌ Failed to pull backend image"
+    log "   Pulling frontend image..."
+    docker-compose -f docker-compose.prod.yml pull frontend || log "   ❌ Failed to pull frontend image"
+    log "   ✅ Registry images pulled"
 else
     # Check if images already exist and are recent
+    log "   🔍 Checking for existing local images..."
     BACKEND_EXISTS=$(docker images -q motivation-backend:latest 2>/dev/null)
     FRONTEND_EXISTS=$(docker images -q motivation-frontend:latest 2>/dev/null)
+
+    log "   Backend image exists: $([ -n "$BACKEND_EXISTS" ] && echo "✅ YES" || echo "❌ NO")"
+    log "   Frontend image exists: $([ -n "$FRONTEND_EXISTS" ] && echo "✅ YES" || echo "❌ NO")"
 
     if [ "$FORCE_REBUILD" = "true" ] || [ -z "$BACKEND_EXISTS" ] || [ -z "$FRONTEND_EXISTS" ]; then
         if [ "$FORCE_REBUILD" = "true" ]; then
@@ -126,19 +164,20 @@ else
             log "   🏗️  Building missing images with layer caching..."
             # Build only missing images
             if [ -z "$BACKEND_EXISTS" ]; then
-                log "     Building backend image..."
-                docker-compose -f docker-compose.prod.yml build backend
+                log "     🏗️  Building backend image..."
+                docker-compose -f docker-compose.prod.yml build backend || log "     ❌ Backend build failed"
             else
-                log "     Backend image exists, skipping..."
+                log "     ✅ Backend image exists, skipping..."
             fi
             if [ -z "$FRONTEND_EXISTS" ]; then
-                log "     Building frontend image..."
-                docker-compose -f docker-compose.prod.yml build frontend
+                log "     🏗️  Building frontend image..."
+                docker-compose -f docker-compose.prod.yml build frontend || log "     ❌ Frontend build failed"
             else
-                log "     Frontend image exists, skipping..."
+                log "     ✅ Frontend image exists, skipping..."
             fi
         fi
         echo "$(date +%s)" > .last_build
+        log "   ✅ Image building completed"
     else
         log "   ✅ Using existing images (fastest option)..."
         log "   💡 Set FORCE_REBUILD=true to force rebuild"
@@ -151,19 +190,36 @@ fi
 log "🚀 Starting database and Redis..."
 docker-compose -f docker-compose.prod.yml up -d db redis
 
+# Check initial service status
+log "📊 Initial service status after startup:"
+docker-compose -f docker-compose.prod.yml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+
 # Wait for database and Redis to be ready
+log "⏳ Waiting for database and Redis to be healthy..."
 wait_for_service db
 wait_for_service redis
+
+log "📊 Service status after health checks:"
+docker-compose -f docker-compose.prod.yml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 # Start backend service
 log "🚀 Starting backend service..."
 docker-compose -f docker-compose.prod.yml up -d backend
 
+# Check backend startup
+log "📊 Backend service status:"
+docker-compose -f docker-compose.prod.yml ps backend --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+
 # Wait for backend to be ready (give it more time since it needs to run migrations)
 log "⏳ Waiting for backend to start up (this may take a minute due to migrations)..."
+log "   Backend will run database migrations during startup..."
 sleep 45  # Give the backend time to start up before checking health
 
+log "📊 Checking backend readiness..."
 wait_for_service backend
+
+log "📊 Backend service final status:"
+docker-compose -f docker-compose.prod.yml ps backend --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 # Run database migrations
 log "🗄️ Running database migrations..."
