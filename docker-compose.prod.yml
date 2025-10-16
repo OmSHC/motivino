@@ -79,7 +79,7 @@ services:
     restart: "no"
     depends_on:
       - backend
-    command: ["sh", "-c", "npm run build && cp -r build/* /app/build_output/ && echo '✅ Frontend build files ready in volume'"]
+    command: ["sh", "-c", "echo '🏗️ Building React app...' && npm run build && echo '📋 Build output:' && ls -la build/ && echo '📁 Copying to volume...' && mkdir -p /app/build_output && cp -r build/* /app/build_output/ && echo '✅ Files in volume:' && ls -la /app/build_output/ && echo '🎉 Frontend build complete!'"]
 
   nginx:
     image: nginx:alpine
