@@ -22,14 +22,26 @@ if ! docker-compose -f docker-compose.prod.yml ps backend | grep -q "Up"; then
     exit 1
 fi
 
+# Ensure database migrations are run
+echo "🗄️  Ensuring database migrations are applied..."
+docker-compose -f docker-compose.prod.yml exec -T backend python manage.py migrate
+
+if [ $? -ne 0 ]; then
+    echo "❌ Database migrations failed. Check database configuration."
+    exit 1
+fi
+
 echo "🔍 Checking if admin user already exists..."
 if docker-compose -f docker-compose.prod.yml exec -T backend python manage.py shell -c "
-from apps.users.models import User
-if User.objects.filter(email='$ADMIN_EMAIL').exists():
-    print('EXISTS')
-else:
-    print('NOT_EXISTS')
-" | grep -q "EXISTS"; then
+try:
+    from apps.users.models import User
+    if User.objects.filter(email='$ADMIN_EMAIL').exists():
+        print('EXISTS')
+    else:
+        print('NOT_EXISTS')
+except Exception as e:
+    print('ERROR:', str(e))
+" 2>/dev/null | grep -q "EXISTS"; then
     echo "✅ Admin user already exists in database"
     echo "   Email: $ADMIN_EMAIL"
     echo "   You can log in with the configured password"

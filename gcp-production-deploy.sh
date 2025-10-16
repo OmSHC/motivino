@@ -256,16 +256,46 @@ log "⏳ Waiting for nginx to start..."
 sleep 3
 log "✅ Nginx started"
 
-# Create admin user if specified
+# Create admin user if specified (persistent in database)
 if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
-    log "👤 Creating admin user..."
-    docker-compose -f docker-compose.prod.yml exec -T backend python manage.py create_admin \
-        --email="$ADMIN_EMAIL" \
-        --password="$ADMIN_PASSWORD" \
-        --first-name="${ADMIN_FIRST_NAME:-Admin}" \
-        --last-name="${ADMIN_LAST_NAME:-User}" || true
+    log "👤 Creating persistent admin user in database..."
+    log "   Email: $ADMIN_EMAIL"
+    log "   This user will be stored permanently in the database"
+
+    # Ensure migrations are run before checking for admin user
+    log "🗄️  Ensuring database migrations are applied..."
+    docker-compose -f docker-compose.prod.yml exec -T backend python manage.py migrate >/dev/null 2>&1
+
+    # Check if admin user already exists
+    if docker-compose -f docker-compose.prod.yml exec -T backend python manage.py shell -c "
+try:
+    from apps.users.models import User
+    if User.objects.filter(email='$ADMIN_EMAIL').exists():
+        print('EXISTS')
+    else:
+        print('NOT_EXISTS')
+except Exception as e:
+    print('ERROR:', str(e))
+" 2>/dev/null | grep -q "EXISTS"; then
+        log "✅ Admin user already exists in database"
+    else
+        # Create the admin user
+        docker-compose -f docker-compose.prod.yml exec -T backend python manage.py create_admin \
+            --email="$ADMIN_EMAIL" \
+            --password="$ADMIN_PASSWORD" \
+            --first-name="${ADMIN_FIRST_NAME:-Admin}" \
+            --last-name="${ADMIN_LAST_NAME:-User}"
+
+        if [ $? -eq 0 ]; then
+            log "✅ Admin user created successfully and stored in database!"
+            log "   🔐 IMPORTANT: Change the default password after first login"
+        else
+            log "❌ Failed to create admin user"
+        fi
+    fi
 else
-    log "⚠️  Admin user not created. Set ADMIN_EMAIL and ADMIN_PASSWORD in .env to create one."
+    log "⚠️  Admin user not created. Set ADMIN_EMAIL and ADMIN_PASSWORD environment variables to create one."
+    log "   💡 You can also run: ./admin-setup.sh"
 fi
 
 # Get server IP
