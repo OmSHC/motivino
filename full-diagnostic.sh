@@ -166,8 +166,13 @@ echo "=============================="
 if [ -f "nginx.conf" ]; then
     log "✅ nginx.conf exists"
 
-    log "Testing nginx configuration syntax:"
-    docker run --rm -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx:alpine nginx -t -c /etc/nginx/nginx.conf 2>&1 && log "✅ Nginx config syntax: VALID" || log "❌ Nginx config syntax: INVALID"
+    log "Testing nginx configuration:"
+    if [ -f "test-nginx.sh" ]; then
+        ./test-nginx.sh 2>/dev/null | grep -E "(✅|❌)" | while read line; do log "   $line"; done
+    else
+        log "   test-nginx.sh not found, using basic syntax check"
+        docker run --rm -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx:alpine nginx -t -c /etc/nginx/nginx.conf 2>&1 && log "   ✅ Nginx config syntax: VALID" || log "   ❌ Nginx config syntax: INVALID"
+    fi
 else
     log "❌ nginx.conf not found"
 fi
