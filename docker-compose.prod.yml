@@ -79,7 +79,7 @@ services:
     restart: "no"
     depends_on:
       - backend
-    command: ["sh", "-c", "echo 'Building React app...' && npm run build && echo 'Copying build files...' && mkdir -p /app/build_output && cp -r build/* /app/build_output/ && echo 'Files copied:' && ls -la /app/build_output/ && echo 'Frontend build complete!'"]
+    command: ["sh", "-c", "npm run build && cp -r build/* /app/build_output/ && echo '✅ Frontend build files ready in volume'"]
 
   nginx:
     image: nginx:alpine
@@ -91,10 +91,8 @@ services:
       - frontend_build:/usr/share/nginx/html:ro
       - nginx_logs:/var/log/nginx
     depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_completed_successfully
+      - backend
+      - frontend
     restart: unless-stopped
 
 volumes:

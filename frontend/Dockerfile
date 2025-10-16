@@ -16,5 +16,5 @@ COPY . .
 # Create build output directory
 RUN mkdir -p /app/build_output
 
-# Default command: build and copy to output directory
-CMD ["sh", "-c", "echo 'Building React app...' && npm run build && echo 'Copying build files...' && cp -r build/* /app/build_output/ && echo 'Frontend build complete!'"]
+# Default command: build and copy to mounted volume
+CMD ["sh", "-c", "echo 'Starting frontend build process...' && npm run build && echo 'Build completed, copying to volume...' && ls -la build/ && cp -r build/* /app/build_output/ && echo '✅ Build files copied to volume:' && ls -la /app/build_output/ && echo '🎉 Frontend build complete!'"]
