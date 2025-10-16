@@ -28,7 +28,7 @@ wait_for_service() {
         fi
         log "   Attempt $attempt/$max_attempts: $service not ready yet..."
         sleep 10
-        ((attempt++))
+        attempt=$(($attempt + 1))
     done
 
     log "❌ $service failed to start properly"
