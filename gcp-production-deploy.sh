@@ -247,17 +247,13 @@ else
     exit 1
 fi
 
-# Ensure backend is healthy before starting nginx
-log "⏳ Ensuring backend is ready for nginx..."
-wait_for_service backend
-
-# Start nginx
+# Start nginx (it will automatically wait for backend due to depends_on condition)
 log "🚀 Starting nginx..."
 docker-compose -f docker-compose.prod.yml up -d nginx
 
-# Give nginx a moment to start (no health check for nginx)
+# Wait for nginx to be ready
 log "⏳ Waiting for nginx to start..."
-sleep 5
+sleep 3
 log "✅ Nginx started"
 
 # Create admin user if specified
