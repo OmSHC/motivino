@@ -36,9 +36,18 @@ def signup(request):
     """
     User signup with email and password.
     """
-    logger.info(f"🔥 SIGNUP REQUEST RECEIVED: {request.META.get('REMOTE_ADDR')} - {request.data}")
-    logger.info(f"📊 Raw request data: {dict(request.data)}")
-    logger.info(f"📊 Request content type: {request.content_type}")
+    try:
+        # Log to file for debugging
+        import datetime
+        log_file = "/app/logs/auth_debug.log"
+        with open(log_file, "a") as f:
+            f.write(f"{datetime.datetime.now()} - SIGNUP REQUEST: {request.META.get('REMOTE_ADDR')} - {dict(request.data)}\n")
+
+        logger.info(f"🔥 SIGNUP REQUEST RECEIVED: {request.META.get('REMOTE_ADDR')} - {request.data}")
+        logger.info(f"📊 Raw request data: {dict(request.data)}")
+        logger.info(f"📊 Request content type: {request.content_type}")
+    except Exception as e:
+        logger.error(f"❌ Error logging signup request: {e}")
 
     try:
         email = (request.data.get('email') or '').strip().lower()
@@ -160,7 +169,20 @@ def signup(request):
         }, status=status.HTTP_201_CREATED)
         
     except Exception as e:
-        logger.error(f"Signup error: {str(e)}")
+        # Log detailed error to file
+        try:
+            import datetime
+            import traceback
+            error_log = "/app/logs/auth_errors.log"
+            with open(error_log, "a") as f:
+                f.write(f"{datetime.datetime.now()} - SIGNUP ERROR: {str(e)}\n")
+                f.write(f"Traceback: {traceback.format_exc()}\n")
+                f.write(f"Request data: {dict(request.data)}\n")
+                f.write("-" * 50 + "\n")
+        except Exception as log_error:
+            logger.error(f"❌ Error writing to log file: {log_error}")
+
+        logger.error(f"❌ Signup error: {str(e)}")
         return Response(
             {'error': 'Registration failed. Please try again.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -262,7 +284,20 @@ def login_view(request):
         })
         
     except Exception as e:
-        logger.error(f"Login error: {str(e)}")
+        # Log detailed error to file
+        try:
+            import datetime
+            import traceback
+            error_log = "/app/logs/auth_errors.log"
+            with open(error_log, "a") as f:
+                f.write(f"{datetime.datetime.now()} - LOGIN ERROR: {str(e)}\n")
+                f.write(f"Traceback: {traceback.format_exc()}\n")
+                f.write(f"Request data: {dict(request.data)}\n")
+                f.write("-" * 50 + "\n")
+        except Exception as log_error:
+            logger.error(f"❌ Error writing to log file: {log_error}")
+
+        logger.error(f"❌ Login error: {str(e)}")
         return Response(
             {'error': 'Login failed. Please try again.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
