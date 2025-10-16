@@ -37,6 +37,8 @@ def signup(request):
     User signup with email and password.
     """
     logger.info(f"🔥 SIGNUP REQUEST RECEIVED: {request.META.get('REMOTE_ADDR')} - {request.data}")
+    logger.info(f"📊 Raw request data: {dict(request.data)}")
+    logger.info(f"📊 Request content type: {request.content_type}")
 
     try:
         email = (request.data.get('email') or '').strip().lower()
@@ -47,7 +49,8 @@ def signup(request):
         school = (request.data.get('school') or '').strip()
 
         logger.info(f"📧 Processing signup for: {email}")
-        logger.info(f"📝 Received data: email={email}, password={'*' * len(password) if password else 'None'}, first_name={first_name}, last_name={last_name}, grade={grade}, school={school}")
+        logger.info(f"📝 Parsed data: email='{email}', password_len={len(password)}, first_name='{first_name}', last_name='{last_name}', grade={repr(grade)}, school='{school}'")
+        logger.info(f"📝 Grade type: {type(grade)}, Grade value: {grade}")
 
         # Validate required fields
         if not email or not password:
