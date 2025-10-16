@@ -106,7 +106,7 @@ function App() {
                 <Route path="/saved" element={<ContentFeed contentType="SAVED" user={user} />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/create-story" element={<AdminDashboard user={user} />} />
-                <Route path="/admin" element={<Navigate to="http://127.0.0.1:8001/admin/" replace />} />
+                <Route path="/admin" element={<Navigate to="/admin/" replace />} />
                 {/* Individual content pages */}
                 <Route path="/content/:id" element={<ContentDetail />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
