@@ -2,6 +2,10 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
+// Debug logging for API calls
+console.log('🚀 API Base URL:', API_BASE_URL);
+console.log('🌐 Current location:', window.location.origin);
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
