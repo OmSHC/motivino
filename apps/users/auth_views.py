@@ -47,35 +47,42 @@ def signup(request):
         school = (request.data.get('school') or '').strip()
 
         logger.info(f"📧 Processing signup for: {email}")
-        
+        logger.info(f"📝 Received data: email={email}, password={'*' * len(password) if password else 'None'}, first_name={first_name}, last_name={last_name}, grade={grade}, school={school}")
+
         # Validate required fields
         if not email or not password:
+            logger.error(f"❌ Missing required fields: email={bool(email)}, password={bool(password)}")
             return Response(
                 {'error': 'Email and password are required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validate email format
         if not validate_email(email):
+            logger.error(f"❌ Invalid email format: {email}")
             return Response(
                 {'error': 'Invalid email format'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validate password
         is_valid, error_msg = validate_password(password)
         if not is_valid:
+            logger.error(f"❌ Password validation failed: {error_msg}")
             return Response(
                 {'error': error_msg},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Check if user already exists
         if User.objects.filter(email=email).exists():
+            logger.warning(f"⚠️ User already exists: {email}")
             return Response(
                 {'error': 'User with this email already exists'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        logger.info(f"✅ All validations passed for: {email}")
         
         # Validate grade if provided
         if grade:
@@ -170,9 +177,10 @@ def login_view(request):
         password = request.data.get('password') or ''
 
         logger.info(f"🔓 Processing login for: {email}")
-        
+
         # Validate required fields
         if not email or not password:
+            logger.error(f"❌ Missing login fields: email={bool(email)}, password={bool(password)}")
             return Response(
                 {'error': 'Email and password are required'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -181,27 +189,31 @@ def login_view(request):
         # Try to get user by email
         try:
             user = User.objects.get(email=email)
+            logger.info(f"✅ Found user: {email} (active: {user.is_active})")
         except User.DoesNotExist:
+            logger.warning(f"❌ User not found: {email}")
             return Response(
                 {'error': 'Invalid email or password'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
+
         # Check password
         if not user.check_password(password):
+            logger.warning(f"❌ Invalid password for: {email}")
             return Response(
                 {'error': 'Invalid email or password'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
+
         # Check if user is active
         if not user.is_active:
+            logger.warning(f"❌ Account disabled for: {email}")
             return Response(
                 {'error': 'Account is disabled'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
-        logger.info(f"User logged in: {email}")
+
+        logger.info(f"🎉 User login successful: {email}")
         
         # Track visit
         user.update_visit_tracking()
