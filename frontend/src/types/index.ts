@@ -19,6 +19,7 @@ export interface Content {
   body: string;
   rich_content?: string;
   youtube_url?: string;
+  news_url?: string;
   target_grade?: number | null;
   target_school?: string;
   source: 'openai' | 'admin' | 'user';

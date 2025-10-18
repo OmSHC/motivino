@@ -45,6 +45,7 @@ class Content(models.Model):
     body = models.TextField()
     rich_content = models.TextField(null=True, blank=True, help_text="Rich text HTML content")
     youtube_url = models.URLField(null=True, blank=True, help_text="YouTube video URL")
+    news_url = models.URLField(null=True, blank=True, help_text="News article URL")
     target_grade = models.IntegerField(null=True, blank=True, help_text="Target grade (1-12)")
     target_school = models.CharField(max_length=255, null=True, blank=True, help_text="Target school")
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='admin')

@@ -45,7 +45,7 @@ class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
         fields = [
-            'id', 'content_type', 'title', 'body', 'rich_content', 'youtube_url',
+            'id', 'content_type', 'title', 'body', 'rich_content', 'youtube_url', 'news_url',
             'target_grade', 'target_school', 'source', 'published_at',
             'created_at', 'is_bookmarked', 'is_active', 'created_by', 'submitted_by',
             'submitted_by_name', 'created_by_name', 'approval_status', 'reviewed_by', 'reviewed_at'
@@ -79,7 +79,7 @@ class ContentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
         fields = [
-            'content_type', 'title', 'body', 'rich_content', 'youtube_url',
+            'content_type', 'title', 'body', 'rich_content', 'youtube_url', 'news_url',
             'target_grade', 'target_school', 'source', 'published_at'
         ]
     

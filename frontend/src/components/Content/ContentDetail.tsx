@@ -363,6 +363,26 @@ const ContentDetail: React.FC = () => {
               </div>
             )}
 
+            {/* News Article Link */}
+            {content.news_url && (
+              <div className="mb-8">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-lg">📰</span>
+                    <span className="font-medium text-blue-900">Related News Article</span>
+                  </div>
+                  <a
+                    href={content.news_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 hover:text-blue-800 font-medium underline break-all"
+                  >
+                    {content.news_url}
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* Additional Info */}
             {content.target_school && (
               <div className="mt-6 pt-6 border-t border-gray-200">

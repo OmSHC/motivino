@@ -8,6 +8,7 @@ interface ContentFormData {
   body: string;
   rich_content: string;
   youtube_url: string;
+  news_url: string;
   target_grade: number | null;
   target_school: string;
 }
@@ -19,6 +20,7 @@ const ContentCreationForm: React.FC = () => {
     body: '',
     rich_content: '',
     youtube_url: '',
+    news_url: '',
     target_grade: null,
     target_school: '',
   });
@@ -62,6 +64,7 @@ const ContentCreationForm: React.FC = () => {
         body: '',
         rich_content: '',
         youtube_url: '',
+        news_url: '',
         target_grade: null,
         target_school: '',
       });
@@ -254,10 +257,38 @@ const ContentCreationForm: React.FC = () => {
                   src={`https://www.youtube.com/embed/${youtubeId}`}
                   title="YouTube video preview"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-write; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* News URL */}
+        <div>
+          <label htmlFor="news_url" className="block text-sm font-medium text-gray-700 mb-2">
+            News Article URL (Optional)
+          </label>
+          <input
+            type="url"
+            id="news_url"
+            name="news_url"
+            value={formData.news_url}
+            onChange={handleInputChange}
+            placeholder="https://example.com/news-article"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          />
+          {formData.news_url && (
+            <div className="mt-2">
+              <a
+                href={formData.news_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline text-sm"
+              >
+                🔗 Preview: {formData.news_url}
+              </a>
             </div>
           )}
         </div>
@@ -308,6 +339,7 @@ const ContentCreationForm: React.FC = () => {
                 body: '',
                 rich_content: '',
                 youtube_url: '',
+                news_url: '',
                 target_grade: null,
                 target_school: '',
               });
