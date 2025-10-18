@@ -42,10 +42,13 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
       } else if (contentType === 'SAVED') {
         // For saved/bookmarked content
         const response = await apiService.getBookmarks();
-        newContent = response.data.results || response.data || [];
+        const bookmarks = response.data.results || response.data || [];
+
+        // Extract content objects from bookmark objects
+        newContent = bookmarks.map((bookmark: any) => bookmark.content || bookmark);
 
         // Check if there are more bookmarks
-        setHasMore(newContent.length === 10);
+        setHasMore(bookmarks.length === 10);
       } else {
         // Single content type request
         const params: any = {
