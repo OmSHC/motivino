@@ -41,11 +41,15 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
         setHasMore(newContent.length === 10);
       } else if (contentType === 'SAVED') {
         // For saved/bookmarked content
+        console.log('Loading saved content...');
         const response = await apiService.getBookmarks();
+        console.log('Bookmarks API response:', response);
         const bookmarks = response.data.results || response.data || [];
+        console.log('Bookmarks array:', bookmarks);
 
         // Extract content objects from bookmark objects
         newContent = bookmarks.map((bookmark: any) => bookmark.content || bookmark);
+        console.log('Extracted content:', newContent);
 
         // Check if there are more bookmarks
         setHasMore(bookmarks.length === 10);
