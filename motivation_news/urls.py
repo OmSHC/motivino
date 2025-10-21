@@ -5,10 +5,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.core.views import homepage, api_docs
+from apps.core.views import homepage, api_docs, health_check
 
 urlpatterns = [
     path('', homepage, name='homepage'),
+    path('health/', health_check, name='health-check'),  # Health check outside /api/ to avoid auth
     path('api/', api_docs, name='api-docs'),
     path('admin/', admin.site.urls),
     path('api/auth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
