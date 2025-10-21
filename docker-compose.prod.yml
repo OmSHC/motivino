@@ -47,8 +47,10 @@ services:
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - REDIS_URL=redis://redis:6379/0
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,136.115.200.36,${DOMAIN:-localhost}
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000,https://${DOMAIN:-localhost}
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,136.115.200.36,winmind.in,www.winmind.in,${DOMAIN:-localhost}
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000,https://winmind.in,https://www.winmind.in,https://${DOMAIN:-localhost}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - logs_data:/app/logs
       - staticfiles_data:/app/staticfiles
