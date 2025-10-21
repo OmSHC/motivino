@@ -145,7 +145,17 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
 }
+
+# Exempt health endpoint from authentication
+from django.urls import reverse_lazy
+HEALTH_URL = '/api/core/health/'
+
+# Override permission classes for specific endpoints
+REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
+    'rest_framework.permissions.IsAuthenticated',
+]
 
 # OAuth2 Provider Settings
 OAUTH2_PROVIDER = {
