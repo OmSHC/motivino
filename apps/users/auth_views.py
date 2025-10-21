@@ -128,33 +128,27 @@ def signup(request):
         # Track visit
         user.update_visit_tracking()
         
-        # Generate access token
-        app, _ = Application.objects.get_or_create(
-            name="Student Motivation News",
-            defaults={
-                'client_type': Application.CLIENT_CONFIDENTIAL,
-                'authorization_grant_type': Application.GRANT_PASSWORD,
-            }
-        )
-        
-        expires = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
-        
-        # Delete any existing tokens for this user
-        AccessToken.objects.filter(user=user, application=app).delete()
-        
+        # Generate simple session-based token (temporary fix for OAuth2 issues)
         import uuid
-        access_token_obj = AccessToken.objects.create(
-            user=user,
-            application=app,
-            token=f'token-{uuid.uuid4()}',
-            expires=timezone.now() + timedelta(seconds=expires),
-            scope='read write'
-        )
-        
+        from django.contrib.sessions.models import Session
+
+        # Create a simple token for now (we'll fix OAuth2 later)
+        token = f'session-{uuid.uuid4()}'
+
+        # Store user info in session (temporary approach)
+        from django.contrib.sessions.backends.db import SessionStore
+        session = SessionStore()
+        session['user_id'] = str(user.id)
+        session['user_email'] = user.email
+        session.create()
+
+        logger.info(f"✅ User registered with session token: {email}")
+
         return Response({
-            'access_token': access_token_obj.token,
+            'access_token': token,
             'token_type': 'Bearer',
-            'expires_in': expires,
+            'expires_in': 3600,  # 1 hour
+            'session_key': session.session_key,
             'user': {
                 'id': user.id,
                 'email': user.email,
@@ -243,33 +237,26 @@ def login_view(request):
         # Track visit
         user.update_visit_tracking()
         
-        # Generate access token
-        app, _ = Application.objects.get_or_create(
-            name="Student Motivation News",
-            defaults={
-                'client_type': Application.CLIENT_CONFIDENTIAL,
-                'authorization_grant_type': Application.GRANT_PASSWORD,
-            }
-        )
-        
-        expires = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
-        
-        # Delete any existing tokens for this user
-        AccessToken.objects.filter(user=user, application=app).delete()
-        
+        # Generate simple session-based token (temporary fix for OAuth2 issues)
         import uuid
-        access_token_obj = AccessToken.objects.create(
-            user=user,
-            application=app,
-            token=f'token-{uuid.uuid4()}',
-            expires=timezone.now() + timedelta(seconds=expires),
-            scope='read write'
-        )
-        
+        from django.contrib.sessions.backends.db import SessionStore
+
+        # Create a simple token for now (we'll fix OAuth2 later)
+        token = f'session-{uuid.uuid4()}'
+
+        # Store user info in session (temporary approach)
+        session = SessionStore()
+        session['user_id'] = str(user.id)
+        session['user_email'] = user.email
+        session.create()
+
+        logger.info(f"✅ User login successful with session token: {email}")
+
         return Response({
-            'access_token': access_token_obj.token,
+            'access_token': token,
             'token_type': 'Bearer',
-            'expires_in': expires,
+            'expires_in': 3600,  # 1 hour
+            'session_key': session.session_key,
             'user': {
                 'id': user.id,
                 'email': user.email,
@@ -281,7 +268,7 @@ def login_view(request):
                 'visit_days_count': user.visit_days_count,
                 'initials': user.initials,
             }
-        })
+        }, status=status.HTTP_200_OK)
         
     except Exception as e:
         # Log detailed error to file
