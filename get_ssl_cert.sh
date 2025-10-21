@@ -4,7 +4,7 @@
 # Requirements: certbot installed on your system
 
 DOMAIN="winmind.in"
-EMAIL="admin@winmind.in"  # Replace with your actual email
+EMAIL="priyankahya@gmail.in"  # Replace with your actual email
 
 echo "Obtaining SSL certificate for $DOMAIN..."
 
