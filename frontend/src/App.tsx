@@ -102,7 +102,6 @@ function App() {
             <div className="p-6">
               <Routes>
                 <Route path="/" element={<ContentFeed contentType="MIXED" user={user} />} />
-                <Route path="/news" element={<ContentFeed contentType="MOTIVATION" user={user} />} />
                 <Route path="/jokes" element={<ContentFeed contentType="JOKES" user={user} />} />
                 <Route path="/quotations" element={<ContentFeed contentType="QUOTATION" user={user} />} />
                 <Route path="/stories" element={<ContentFeed contentType="PUZZLE" user={user} />} />
