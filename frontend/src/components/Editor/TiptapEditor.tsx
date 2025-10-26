@@ -89,19 +89,6 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 
   return (
     <div className="tiptap-editor-wrapper">
-      {/* Debug indicator */}
-      <div style={{ 
-        padding: '8px', 
-        backgroundColor: '#f0f9ff', 
-        border: '2px dashed #3b82f6',
-        marginBottom: '8px',
-        borderRadius: '4px',
-        fontSize: '12px',
-        color: '#1e40af'
-      }}>
-        🎯 Tiptap Editor Active - True WYSIWYG Editing
-      </div>
-
       {/* Toolbar */}
       <div className="border border-gray-300 rounded-t-lg bg-gray-50 p-2 flex flex-wrap gap-1">
         {/* Text Formatting */}
