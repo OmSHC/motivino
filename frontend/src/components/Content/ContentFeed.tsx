@@ -128,7 +128,7 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
   };
 
   const contentTypeTitles = {
-    'MIXED': '🎯 Daily Motivation',
+    'MIXED': '🎯 Motivational News',
     'MOTIVATION': '📰 For Me',
     'JOKES': '😄 Jokes',
     'QUOTATION': '💭 Quotations',
@@ -138,7 +138,7 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
   };
 
   const contentTypeDescriptions = {
-    'MIXED': 'Discover a mix of news, stories, and inspiration tailored for you',
+    'MIXED': '',
     'MOTIVATION': 'Personalized motivation content for your grade level',
     'JOKES': 'Brighten your day with age-appropriate jokes and humor',
     'QUOTATION': 'Find inspiration in daily quotes from great minds',
