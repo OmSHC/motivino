@@ -108,6 +108,7 @@ function App() {
                 <Route path="/tongue-twister" element={<ContentFeed contentType="TONGUE_TWISTER" user={user} />} />
                 <Route path="/saved" element={<ContentFeed contentType="SAVED" user={user} />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/my-submissions" element={<AdminDashboard user={user} />} />
                 <Route path="/create-story" element={<AdminDashboard user={user} />} />
                 <Route path="/admin" element={<Navigate to="/admin/" replace />} />
                 {/* Individual content pages */}

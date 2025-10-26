@@ -3,6 +3,8 @@ Email/Password authentication views.
 """
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -143,7 +145,7 @@ def signup(request):
         token = session.session_key
 
         # Set the session cookie in the response
-        response = Response({
+        response = JsonResponse({
             'access_token': token,
             'token_type': 'Bearer',
             'expires_in': 3600,  # 1 hour
@@ -196,26 +198,33 @@ def signup(request):
         )
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
+@csrf_exempt
 def login_view(request):
     """
     User login with email and password.
     """
-    logger.info(f"🔑 LOGIN REQUEST RECEIVED: {request.META.get('REMOTE_ADDR')} - {request.data}")
+    logger.info(f"🔑 LOGIN REQUEST RECEIVED: {request.META.get('REMOTE_ADDR')}")
+    logger.info(f"🔍 REQUEST METHOD: {request.method}")
+    logger.info(f"🔍 REQUEST PATH: {request.path}")
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
     try:
-        email = (request.data.get('email') or '').strip().lower()
-        password = request.data.get('password') or ''
+        # Parse JSON data manually
+        import json
+        data = json.loads(request.body) if request.body else {}
+        email = (data.get('email') or '').strip().lower()
+        password = data.get('password') or ''
 
         logger.info(f"🔓 Processing login for: {email}")
 
         # Validate required fields
         if not email or not password:
             logger.error(f"❌ Missing login fields: email={bool(email)}, password={bool(password)}")
-            return Response(
+            return JsonResponse(
                 {'error': 'Email and password are required'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=400
             )
         
         # Try to get user by email
@@ -224,25 +233,25 @@ def login_view(request):
             logger.info(f"✅ Found user: {email} (active: {user.is_active})")
         except User.DoesNotExist:
             logger.warning(f"❌ User not found: {email}")
-            return Response(
+            return JsonResponse(
                 {'error': 'Invalid email or password'},
-                status=status.HTTP_401_UNAUTHORIZED
+                status=401
             )
 
         # Check password
         if not user.check_password(password):
             logger.warning(f"❌ Invalid password for: {email}")
-            return Response(
+            return JsonResponse(
                 {'error': 'Invalid email or password'},
-                status=status.HTTP_401_UNAUTHORIZED
+                status=401
             )
 
         # Check if user is active
         if not user.is_active:
             logger.warning(f"❌ Account disabled for: {email}")
-            return Response(
+            return JsonResponse(
                 {'error': 'Account is disabled'},
-                status=status.HTTP_401_UNAUTHORIZED
+                status=401
             )
 
         logger.info(f"🎉 User login successful: {email}")
@@ -264,7 +273,7 @@ def login_view(request):
         token = session.session_key
 
         # Set the session cookie in the response
-        response = Response({
+        response = JsonResponse({
             'access_token': token,
             'token_type': 'Bearer',
             'expires_in': 3600,  # 1 hour
@@ -280,7 +289,7 @@ def login_view(request):
                 'visit_days_count': user.visit_days_count,
                 'initials': user.initials,
             }
-        }, status=status.HTTP_200_OK)
+        }, status=200)
 
         # Set the session cookie so Django session auth works
         response.set_cookie(
@@ -311,9 +320,9 @@ def login_view(request):
             logger.error(f"❌ Error writing to log file: {log_error}")
 
         logger.error(f"❌ Login error: {str(e)}")
-        return Response(
+        return JsonResponse(
             {'error': 'Login failed. Please try again.'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status=500
         )
 
 

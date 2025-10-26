@@ -19,6 +19,7 @@ class Content(models.Model):
         ('JOKES', 'Jokes'),
         ('QUOTATION', 'Quotation'),
         ('PUZZLE', 'Puzzle'),
+        ('TONGUE_TWISTER', 'Tongue Twister'),
     ]
     
     RESUBMISSION_STATUS_CHOICES = [

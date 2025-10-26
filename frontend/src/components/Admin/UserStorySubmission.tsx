@@ -142,11 +142,107 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
 
   return (
     <div className="space-y-8">
-      {/* Submission Form */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          {editingSubmission ? '✏️ Edit Submission' : '✨ Submit Your Story'}
-        </h2>
+      {/* Show submissions list first when on My Submissions page */}
+      {showMySubmissions && (
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            📝 My Submissions
+          </h2>
+
+          <div className="space-y-4">
+            {mySubmissions
+              .filter(submission => !statusFilter || submission.approval_status === statusFilter)
+              .map((submission) => (
+              <div
+                key={submission.id}
+                className="border rounded-lg p-4 hover:border-primary-500 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium">
+                      {submission.title || 'Untitled Story'}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Submitted on {new Date(submission.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {getStatusBadge(submission.approval_status)}
+                </div>
+
+                {submission.approval_status === 'rejected' && (
+                  <div className="mt-3 text-sm bg-red-50 text-red-700 p-3 rounded-lg border border-red-200">
+                    <div className="flex items-start">
+                      <span className="text-red-500 mr-2">❌</span>
+                      <div>
+                        <strong className="block text-red-800 mb-1">Rejection Reason:</strong>
+                        <p className="text-red-700">
+                          {submission.rejection_reason || 'No specific reason provided.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons based on status */}
+                <div className="mt-3 flex space-x-2">
+                  {submission.approval_status === 'approved' && (
+                    <span className="text-sm text-gray-500">
+                      ✅ Approved - No actions available
+                    </span>
+                  )}
+                  
+                  {submission.approval_status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleEdit(submission)}
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(submission.id)}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </>
+                  )}
+                  
+                  {submission.approval_status === 'rejected' && (
+                    <>
+                      <button
+                        onClick={() => handleEdit(submission)}
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      >
+                        ✏️ Edit and Resubmit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(submission.id)}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {mySubmissions.filter(submission => !statusFilter || submission.approval_status === statusFilter).length === 0 && (
+              <p className="text-center text-gray-500 py-8">
+                {statusFilter ? `No ${statusFilter} submissions found.` : "You haven't submitted any stories yet."}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Submission Form - Only show when not on My Submissions page or when editing */}
+      {(!showMySubmissions || editingSubmission) && (
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            {editingSubmission ? '✏️ Edit Submission' : '✨ Submit Your Story'}
+          </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -277,94 +373,9 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
             )}
           </div>
         </form>
-      </div>
-
-      {/* My Submissions List */}
-      {showMySubmissions && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            📝 My Submissions
-          </h2>
-
-          <div className="space-y-4">
-            {mySubmissions
-              .filter(submission => !statusFilter || submission.approval_status === statusFilter)
-              .map((submission) => (
-              <div
-                key={submission.id}
-                className="border rounded-lg p-4 hover:border-primary-500 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium">
-                      {submission.title || 'Untitled Story'}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Submitted on {new Date(submission.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {getStatusBadge(submission.approval_status)}
-                </div>
-
-                {submission.rejection_reason && (
-                  <div className="mt-3 text-sm bg-red-50 text-red-700 p-3 rounded-lg">
-                    <strong>Rejection Reason:</strong> {submission.rejection_reason}
-                  </div>
-                )}
-
-                {/* Action buttons based on status */}
-                <div className="mt-3 flex space-x-2">
-                  {submission.approval_status === 'approved' && (
-                    <span className="text-sm text-gray-500">
-                      ✅ Approved - No actions available
-                    </span>
-                  )}
-                  
-                  {submission.approval_status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => handleEdit(submission)}
-                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(submission.id)}
-                        className="text-red-600 hover:text-red-700 text-sm font-medium"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </>
-                  )}
-                  
-                  {submission.approval_status === 'rejected' && (
-                    <>
-                      <button
-                        onClick={() => handleEdit(submission)}
-                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                      >
-                        ✏️ Edit and Resubmit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(submission.id)}
-                        className="text-red-600 hover:text-red-700 text-sm font-medium"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {mySubmissions.length === 0 && (
-              <p className="text-center text-gray-500 py-8">
-                You haven't submitted any stories yet.
-              </p>
-            )}
-          </div>
         </div>
       )}
+
     </div>
   );
 };

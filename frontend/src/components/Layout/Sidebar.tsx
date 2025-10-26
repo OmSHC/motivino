@@ -84,25 +84,39 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onProfileClick }) => {
               );
             })}
 
-            {/* Create Story - For ADMIN users only */}
+            {/* My Submission - For ALL users */}
+            <div className="border-t border-gray-200 my-4"></div>
+            <Link
+              to="/my-submissions"
+              onClick={() => setIsOpen(false)}
+              className={`
+                flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200
+                ${location.pathname === '/my-submissions' 
+                  ? 'bg-blue-100 text-blue-700 border-r-4 border-blue-600' 
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }
+              `}
+            >
+              <BookmarkIcon className="h-5 w-5" />
+              <span className="font-medium">📝 My Submission</span>
+            </Link>
+
+            {/* Admin - For ADMIN users only */}
             {isAdmin && (
-              <>
-                <div className="border-t border-gray-200 my-4"></div>
-                <Link
-                  to="/create-story"
-                  onClick={() => setIsOpen(false)}
-                  className={`
-                    flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200
-                    ${location.pathname === '/create-story' 
-                      ? 'bg-green-100 text-green-700 border-r-4 border-green-600' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <CogIcon className="h-5 w-5" />
-                  <span className="font-medium">📝 My Submission</span>
-                </Link>
-              </>
+              <Link
+                to="/create-story"
+                onClick={() => setIsOpen(false)}
+                className={`
+                  flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200
+                  ${location.pathname === '/create-story' 
+                    ? 'bg-green-100 text-green-700 border-r-4 border-green-600' 
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }
+                `}
+              >
+                <CogIcon className="h-5 w-5" />
+                <span className="font-medium">⚙️ Admin</span>
+              </Link>
             )}
           </nav>
 

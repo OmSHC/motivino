@@ -37,7 +37,7 @@ def submit_story(request):
             )
 
         # Validate content type
-        valid_types = ['MOTIVATION', 'JOKES', 'QUOTATION', 'PUZZLE']
+        valid_types = ['MOTIVATION', 'JOKES', 'QUOTATION', 'PUZZLE', 'TONGUE_TWISTER']
         if content_type not in valid_types:
             return Response(
                 {'error': f'Invalid content type. Must be one of: {", ".join(valid_types)}'},
@@ -256,7 +256,7 @@ def resubmit_story(request, content_id):
             )
 
         # Validate content type
-        valid_types = ['MOTIVATION', 'JOKES', 'QUOTATION', 'PUZZLE']
+        valid_types = ['MOTIVATION', 'JOKES', 'QUOTATION', 'PUZZLE', 'TONGUE_TWISTER']
         if content_type not in valid_types:
             return Response(
                 {'error': f'Invalid content type. Must be one of: {", ".join(valid_types)}'},

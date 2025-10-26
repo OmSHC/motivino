@@ -15,14 +15,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     isAdmin ? 'admin-pending' : 'approved'
   );
 
+  // Check if we're on the my-submissions route
+  const isMySubmissionsRoute = window.location.pathname === '/my-submissions';
+
   return (
     <div className="max-w-7xl mx-auto py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {isAdmin ? 'Admin Dashboard' : 'Create Your Story'}
+          {isMySubmissionsRoute ? 'My Submissions' : (isAdmin ? 'Admin Dashboard' : 'Create Your Story')}
         </h1>
         <p className="text-gray-600">
-          {isAdmin 
+          {isMySubmissionsRoute 
+            ? `View and manage your submitted content, ${user.first_name}!`
+            : isAdmin 
             ? `Welcome, ${user.first_name}! Create and manage motivational content for students.`
             : `Share your inspiring story with fellow students, ${user.first_name}!`
           }
@@ -32,7 +37,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
-          {!isAdmin && (
+          {/* Show user submission tabs for my-submissions route or non-admin users */}
+          {(isMySubmissionsRoute || !isAdmin) && (
             <>
               <button
                 onClick={() => setActiveTab('approved')}
@@ -73,7 +79,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             </>
           )}
           
-          {isAdmin && (
+          {/* Show admin tabs only for admin users on create-story route */}
+          {isAdmin && !isMySubmissionsRoute && (
             <>
               <button
                 onClick={() => setActiveTab('admin-pending')}
@@ -106,7 +113,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
       {/* Tab Content */}
       <div>
-        {!isAdmin && (
+        {/* Show user submission content for my-submissions route or non-admin users */}
+        {(isMySubmissionsRoute || !isAdmin) && (
           <>
             {activeTab === 'approved' && <UserStorySubmission user={user} showMySubmissions={true} statusFilter="approved" />}
             {activeTab === 'pending' && <UserStorySubmission user={user} showMySubmissions={true} statusFilter="pending" />}
@@ -114,7 +122,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           </>
         )}
         
-        {isAdmin && (
+        {/* Show admin content only for admin users on create-story route */}
+        {isAdmin && !isMySubmissionsRoute && (
           <>
             {activeTab === 'admin-pending' && <PendingApprovals />}
             {activeTab === 'admin-manage' && <ContentManagement />}

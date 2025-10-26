@@ -60,8 +60,10 @@ const UnifiedStoryModal: React.FC<UnifiedStoryModalProps> = ({
     } else {
       // Reset form for new content with default content type
       const initialContentType = defaultContentType || 'MOTIVATION';
+      // Map MIXED to MOTIVATION for submissions
+      const validContentType = initialContentType === 'MIXED' ? 'MOTIVATION' : initialContentType;
       setFormData({
-        content_type: initialContentType as 'MOTIVATION' | 'JOKES' | 'QUOTATION' | 'PUZZLE' | 'TONGUE_TWISTER',
+        content_type: validContentType as 'MOTIVATION' | 'JOKES' | 'QUOTATION' | 'PUZZLE' | 'TONGUE_TWISTER',
         title: '',
         body: '',
         rich_content: '',
@@ -106,12 +108,8 @@ const UnifiedStoryModal: React.FC<UnifiedStoryModalProps> = ({
         await apiService.updateContent(editContent.id, submitData);
         setMessage({ type: 'success', text: 'Content updated successfully!' });
       } else {
-        // Create new content
-        if (user?.role === 'ADMIN') {
-          await apiService.createContent(submitData);
-        } else {
-          await apiService.submitStory(submitData);
-        }
+        // Create new content - always use user submission endpoint for story submissions
+        await apiService.submitStory(submitData);
         setMessage({ type: 'success', text: 'Story submitted successfully!' });
       }
       
