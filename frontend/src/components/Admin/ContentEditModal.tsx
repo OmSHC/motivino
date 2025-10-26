@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import MDEditor from '@uiw/react-md-editor';
+import TiptapEditor from '../Editor/TiptapEditor';
 
 interface Content {
   id: string;
@@ -121,8 +121,8 @@ const ContentEditModal: React.FC<ContentEditModalProps> = ({ content, isOpen, on
             </select>
           </div>
 
-          {/* Title */}
-          <div>
+          {/* Title - Hidden */}
+          <div className="hidden">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
               Title
             </label>
@@ -137,22 +137,22 @@ const ContentEditModal: React.FC<ContentEditModalProps> = ({ content, isOpen, on
           </div>
 
           {/* Rich Content */}
-          <div data-color-mode="light">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Main Content (HTML/Markdown) *
+              Main Content *
             </label>
-            <MDEditor
-              value={formData.rich_content}
+            <TiptapEditor
+              content={formData.rich_content}
               onChange={handleRichContentChange}
-              preview="edit"
-              height={300}
+              placeholder="Start writing your content here..."
+              minHeight={300}
             />
           </div>
 
           {/* Plain Text Body */}
           <div>
             <label htmlFor="body" className="block text-sm font-medium text-gray-700 mb-2">
-              Plain Text Summary
+              {formData.section === 'STORY' ? 'Answer' : 'Plain Text Summary'}
             </label>
             <textarea
               id="body"
@@ -160,6 +160,7 @@ const ContentEditModal: React.FC<ContentEditModalProps> = ({ content, isOpen, on
               value={formData.body}
               onChange={handleInputChange}
               rows={2}
+              placeholder={formData.section === 'STORY' ? 'Enter the answer to the puzzle...' : 'Enter a plain text summary...'}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

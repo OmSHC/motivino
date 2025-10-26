@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import MDEditor from '@uiw/react-md-editor';
 import { apiService } from '../../services/api';
+import TiptapEditor from '../Editor/TiptapEditor';
 
 interface ContentFormData {
   content_type: 'MOTIVATION' | 'JOKES' | 'QUOTATION' | 'PUZZLE';
@@ -36,8 +36,11 @@ const ContentCreationForm: React.FC = () => {
     }));
   };
 
-  const handleRichContentChange = (value?: string) => {
-    setFormData(prev => ({ ...prev, rich_content: value || '' }));
+  const handleRichContentChange = (content: string) => {
+    setFormData(prev => ({
+      ...prev,
+      rich_content: content
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +52,7 @@ const ContentCreationForm: React.FC = () => {
       // Prepare data
       const submitData = {
         ...formData,
-        body: formData.body || formData.rich_content.substring(0, 200) || 'Content created via admin panel',
+        body: formData.body || (formData.rich_content ? formData.rich_content.replace(/<[^>]*>/g, '').substring(0, 200) : 'Content created via admin panel'),
         source: 'admin',
       };
 
@@ -88,11 +91,6 @@ const ContentCreationForm: React.FC = () => {
 
   const youtubeId = extractYouTubeId(formData.youtube_url);
 
-  // Quick formatting buttons
-  const insertFormatting = (prefix: string, suffix: string = '') => {
-    const newContent = formData.rich_content + `\n${prefix}Your text here${suffix}\n`;
-    setFormData(prev => ({ ...prev, rich_content: newContent }));
-  };
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
@@ -127,8 +125,8 @@ const ContentCreationForm: React.FC = () => {
           </select>
         </div>
 
-        {/* Title */}
-        <div>
+        {/* Title - Hidden */}
+        <div className="hidden">
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
             Title
           </label>
@@ -143,84 +141,29 @@ const ContentCreationForm: React.FC = () => {
           />
         </div>
 
-        {/* Quick Formatting Buttons */}
+
+        {/* Rich Text Content with MD Editor */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Quick Formatting
+            Main Content *
           </label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            <button
-              type="button"
-              onClick={() => insertFormatting('<h2>', '</h2>')}
-              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
-              title="Add Heading"
-            >
-              <strong>H2</strong> Heading
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('<p><strong>', '</strong></p>')}
-              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
-              title="Bold Text"
-            >
-              <strong>B</strong> Bold
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('<p><em>', '</em></p>')}
-              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
-              title="Italic Text"
-            >
-              <em>I</em> Italic
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('<ul>\n  <li>', '</li>\n</ul>')}
-              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
-              title="Bullet List"
-            >
-              • List
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('<p style="color: #3b82f6;">', '</p>')}
-              className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 rounded-md border border-blue-300 text-blue-700"
-              title="Blue Text"
-            >
-              Blue
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('<blockquote style="border-left: 4px solid #3b82f6; padding-left: 16px;">', '</blockquote>')}
-              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
-              title="Quote"
-            >
-              " Quote
-            </button>
-          </div>
-        </div>
-
-        {/* Rich Text Content with Markdown Editor */}
-        <div data-color-mode="light">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Main Content (HTML/Markdown) *
-          </label>
-          <MDEditor
-            value={formData.rich_content}
+          
+          <TiptapEditor
+            content={formData.rich_content}
             onChange={handleRichContentChange}
-            preview="edit"
-            height={400}
-            hideToolbar={false}
+            placeholder="Start writing your content here... Use the toolbar above for formatting."
+            minHeight={500}
           />
+          
           <p className="mt-2 text-sm text-gray-500">
-            💡 Tip: You can write HTML or Markdown. Use the buttons above for quick formatting!
+            💡 Tip: Use the toolbar above to format your text. You can add images, links, and see exactly how it will appear!
           </p>
         </div>
 
         {/* Plain Text Body (Fallback) */}
         <div>
           <label htmlFor="body" className="block text-sm font-medium text-gray-700 mb-2">
-            Plain Text Summary (Optional)
+            {formData.content_type === 'PUZZLE' ? 'Answer' : 'Plain Text Summary (Optional)'}
           </label>
           <textarea
             id="body"
@@ -228,7 +171,7 @@ const ContentCreationForm: React.FC = () => {
             value={formData.body}
             onChange={handleInputChange}
             rows={3}
-            placeholder="Enter a plain text summary (used as fallback and preview)..."
+            placeholder={formData.content_type === 'PUZZLE' ? 'Enter the answer to the puzzle...' : 'Enter a plain text summary (used as fallback and preview)...'}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -366,18 +309,6 @@ const ContentCreationForm: React.FC = () => {
         </div>
       </form>
 
-      {/* HTML Preview */}
-      {formData.rich_content && (
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Preview:</h3>
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div 
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: formData.rich_content }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

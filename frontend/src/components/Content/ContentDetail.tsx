@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
-  ArrowLeftIcon,
   BookmarkIcon,
   ShareIcon,
   FlagIcon,
@@ -28,7 +29,6 @@ interface Comment {
 
 const ContentDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [content, setContent] = useState<Content | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,64 +149,6 @@ const ContentDetail: React.FC = () => {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const truncateContent = (content: string, maxLines: number = 6): string => {
-    if (!content) return '';
-
-    // Split by newlines and count lines
-    const lines = content.split('\n');
-
-    if (lines.length <= maxLines) {
-      return content;
-    }
-
-    // Take first maxLines lines and add ellipsis
-    return lines.slice(0, maxLines).join('\n') + '\n...';
-  };
-
-  const truncateHtmlContent = (htmlContent: string, maxLines: number = 6): string => {
-    if (!htmlContent) return '';
-
-    // Create a temporary div to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-
-    // Get text content and split by lines
-    const textContent = tempDiv.textContent || tempDiv.innerText || '';
-    const lines = textContent.split('\n');
-
-    if (lines.length <= maxLines) {
-      return htmlContent;
-    }
-
-    // For HTML content, we'll just truncate at a reasonable character limit
-    // since line counting in HTML is complex
-    const avgCharsPerLine = 80; // Approximate
-    const maxChars = maxLines * avgCharsPerLine;
-
-    if (textContent.length <= maxChars) {
-      return htmlContent;
-    }
-
-    // Find a good breaking point (end of sentence or word)
-    let truncatedText = textContent.substring(0, maxChars);
-    const lastSentenceEnd = Math.max(
-      truncatedText.lastIndexOf('.'),
-      truncatedText.lastIndexOf('!'),
-      truncatedText.lastIndexOf('?')
-    );
-
-    if (lastSentenceEnd > maxChars * 0.7) { // If we can break at a sentence
-      truncatedText = truncatedText.substring(0, lastSentenceEnd + 1);
-    } else {
-      // Break at last space
-      const lastSpace = truncatedText.lastIndexOf(' ');
-      if (lastSpace > maxChars * 0.8) {
-        truncatedText = truncatedText.substring(0, lastSpace);
-      }
-    }
-
-    return truncatedText + '...';
-  };
 
   if (loading) {
     return (
@@ -227,10 +169,10 @@ const ContentDetail: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Content Not Found</h1>
           <p className="text-gray-600 mb-4">{error || 'The requested content could not be found.'}</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => window.location.href = '/'}
             className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
           >
-            Go Back
+            Go Home
           </button>
         </div>
       </div>
@@ -242,15 +184,7 @@ const ContentDetail: React.FC = () => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-              <span>Back</span>
-            </button>
-
+          <div className="flex items-center justify-end">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleBookmarkToggle}
@@ -334,13 +268,15 @@ const ContentDetail: React.FC = () => {
             {/* Main Content */}
             <div className="mb-8">
               {content.rich_content ? (
-                <div
+                <div 
                   className="prose prose-lg max-w-none text-gray-800 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: truncateHtmlContent(content.rich_content, 6) }}
+                  dangerouslySetInnerHTML={{
+                    __html: content.rich_content
+                  }}
                 />
               ) : (
                 <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
-                  <p className="whitespace-pre-wrap">{truncateContent(content.body, 6)}</p>
+                  <p className="whitespace-pre-wrap">{content.body}</p>
                 </div>
               )}
             </div>

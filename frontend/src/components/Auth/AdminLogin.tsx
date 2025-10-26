@@ -3,7 +3,7 @@ import { apiService } from '../../services/api';
 import { User } from '../../types';
 
 interface AdminLoginProps {
-  onAuthSuccess: (user: User, token: string) => void;
+  onAuthSuccess: (user: User, token: string, sessionKey?: string) => void;
   onAuthError: (error: string) => void;
   onBackToStudent: () => void;
 }
@@ -19,9 +19,9 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onAuthSuccess, onAuthError, onB
         first_name: 'Admin',
         last_name: 'User'
       });
-      
+
       if (response.data.access_token) {
-        onAuthSuccess(response.data.user, response.data.access_token);
+        onAuthSuccess(response.data.user, response.data.access_token, response.data.session_key);
       }
     } catch (error) {
       console.error('Admin login failed:', error);

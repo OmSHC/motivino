@@ -12,6 +12,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include cookies in requests
 });
 
 // Add auth token to requests
@@ -28,7 +29,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Clear both token and cookies on auth failure
       localStorage.removeItem('access_token');
+      localStorage.removeItem('session_key');
+      // Clear session cookies
+      document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       window.location.href = '/login';
     }
     return Promise.reject(error);

@@ -129,22 +129,21 @@ def signup(request):
         user.update_visit_tracking()
         
         # Generate simple session-based token (temporary fix for OAuth2 issues)
-        import uuid
         from django.contrib.sessions.models import Session
-
-        # Create a simple token for now (we'll fix OAuth2 later)
-        token = f'session-{uuid.uuid4()}'
 
         # Store user info in session (temporary approach)
         from django.contrib.sessions.backends.db import SessionStore
         session = SessionStore()
         session['user_id'] = str(user.id)
         session['user_email'] = user.email
+        session['authenticated'] = True
         session.create()
 
-        logger.info(f"✅ User registered with session token: {email}")
+        # Use the actual session key as the token
+        token = session.session_key
 
-        return Response({
+        # Set the session cookie in the response
+        response = Response({
             'access_token': token,
             'token_type': 'Bearer',
             'expires_in': 3600,  # 1 hour
@@ -161,6 +160,20 @@ def signup(request):
                 'initials': user.initials,
             }
         }, status=status.HTTP_201_CREATED)
+
+        # Set the session cookie so Django session auth works
+        response.set_cookie(
+            'sessionid',
+            session.session_key,
+            max_age=3600,  # 1 hour
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite='Lax'
+        )
+
+        logger.info(f"✅ User registered with session token: {email}")
+
+        return response
         
     except Exception as e:
         # Log detailed error to file
@@ -238,21 +251,20 @@ def login_view(request):
         user.update_visit_tracking()
         
         # Generate simple session-based token (temporary fix for OAuth2 issues)
-        import uuid
         from django.contrib.sessions.backends.db import SessionStore
-
-        # Create a simple token for now (we'll fix OAuth2 later)
-        token = f'session-{uuid.uuid4()}'
 
         # Store user info in session (temporary approach)
         session = SessionStore()
         session['user_id'] = str(user.id)
         session['user_email'] = user.email
+        session['authenticated'] = True
         session.create()
 
-        logger.info(f"✅ User login successful with session token: {email}")
+        # Use the actual session key as the token
+        token = session.session_key
 
-        return Response({
+        # Set the session cookie in the response
+        response = Response({
             'access_token': token,
             'token_type': 'Bearer',
             'expires_in': 3600,  # 1 hour
@@ -269,6 +281,20 @@ def login_view(request):
                 'initials': user.initials,
             }
         }, status=status.HTTP_200_OK)
+
+        # Set the session cookie so Django session auth works
+        response.set_cookie(
+            'sessionid',
+            session.session_key,
+            max_age=3600,  # 1 hour
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite='Lax'
+        )
+
+        logger.info(f"✅ User login successful with session token: {email}")
+
+        return response
         
     except Exception as e:
         # Log detailed error to file

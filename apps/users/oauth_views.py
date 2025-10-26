@@ -194,39 +194,25 @@ def demo_login(request):
         # Track visit
         user.update_visit_tracking()
         
-        # Generate or get OAuth2 token for API access
-        from oauth2_provider.models import Application, AccessToken
-        from oauth2_provider.settings import oauth2_settings
-        from datetime import timedelta
-        
-        # Get or create OAuth2 application
-        app, _ = Application.objects.get_or_create(
-            name="Student Motivation News",
-            defaults={
-                'client_type': Application.CLIENT_CONFIDENTIAL,
-                'authorization_grant_type': Application.GRANT_PASSWORD,
-            }
-        )
-        
-        # Create access token with unique value
-        import uuid
-        expires = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
-        
-        # Delete any existing tokens for this user to avoid duplicates
-        AccessToken.objects.filter(user=user, application=app).delete()
-        
-        access_token_obj = AccessToken.objects.create(
-            user=user,
-            application=app,
-            token=f'demo-token-{uuid.uuid4()}',
-            expires=timezone.now() + timedelta(seconds=expires),
-            scope='read write'
-        )
-        
-        return Response({
-            'access_token': access_token_obj.token,
+        # Generate session-based token for consistency with main login
+        from django.contrib.sessions.backends.db import SessionStore
+
+        # Store user info in session
+        session = SessionStore()
+        session['user_id'] = str(user.id)
+        session['user_email'] = user.email
+        session['authenticated'] = True
+        session.create()
+
+        # Use the actual session key as the token
+        token = session.session_key
+
+        # Set the session cookie in the response
+        response = Response({
+            'access_token': token,
             'token_type': 'Bearer',
-            'expires_in': expires,
+            'expires_in': 3600,  # 1 hour
+            'session_key': session.session_key,
             'user': {
                 'id': user.id,
                 'email': user.email,
@@ -239,7 +225,19 @@ def demo_login(request):
                 'initials': user.initials,
             },
             'demo_mode': True
-        })
+        }, status=status.HTTP_200_OK)
+
+        # Set the session cookie so Django session auth works
+        response.set_cookie(
+            'sessionid',
+            session.session_key,
+            max_age=3600,  # 1 hour
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite='Lax'
+        )
+
+        return response
         
     except Exception as e:
         logger.error(f"Demo login error: {str(e)}")

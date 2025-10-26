@@ -31,18 +31,22 @@ const AuthCallback: React.FC = () => {
         const response = await apiService.googleOAuthCallback(code);
         
         if (response.data.access_token) {
-          // Store the token
+          // Store the token and session key
           localStorage.setItem('access_token', response.data.access_token);
-          
+          if (response.data.session_key) {
+            localStorage.setItem('session_key', response.data.session_key);
+          }
+
           setStatus('success');
           setMessage('Authentication successful! Redirecting...');
-          
+
           // Send success message to parent window if in popup
           if (window.opener) {
             window.opener.postMessage({
               type: 'GOOGLE_AUTH_SUCCESS',
               user: response.data.user,
-              access_token: response.data.access_token
+              access_token: response.data.access_token,
+              session_key: response.data.session_key
             }, window.location.origin);
             window.close();
           } else {

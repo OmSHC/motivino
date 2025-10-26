@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   BookmarkIcon,
   ShareIcon,
@@ -90,63 +92,6 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onBookmarkToggle }) 
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const truncateContent = (content: string, maxLines: number = 4): string => {
-    if (!content) return '';
-
-    // Split by newlines and count lines
-    const lines = content.split('\n');
-
-    if (lines.length <= maxLines) {
-      return content;
-    }
-
-    // Take first maxLines lines and add ellipsis
-    return lines.slice(0, maxLines).join('\n') + '\n...';
-  };
-
-  const truncateHtmlContent = (htmlContent: string, maxLines: number = 4): string => {
-    if (!htmlContent) return '';
-
-    // Create a temporary div to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-
-    // Get text content and split by lines
-    const textContent = tempDiv.textContent || tempDiv.innerText || '';
-    const lines = textContent.split('\n');
-
-    if (lines.length <= maxLines) {
-      return htmlContent;
-    }
-
-    // For HTML content, we'll just truncate at a reasonable character limit
-    const avgCharsPerLine = 80; // Approximate
-    const maxChars = maxLines * avgCharsPerLine;
-
-    if (textContent.length <= maxChars) {
-      return htmlContent;
-    }
-
-    // Find a good breaking point (end of sentence or word)
-    let truncatedText = textContent.substring(0, maxChars);
-    const lastSentenceEnd = Math.max(
-      truncatedText.lastIndexOf('.'),
-      truncatedText.lastIndexOf('!'),
-      truncatedText.lastIndexOf('?')
-    );
-
-    if (lastSentenceEnd > maxChars * 0.7) { // If we can break at a sentence
-      truncatedText = truncatedText.substring(0, lastSentenceEnd + 1);
-    } else {
-      // Break at last space
-      const lastSpace = truncatedText.lastIndexOf(' ');
-      if (lastSpace > maxChars * 0.8) {
-        truncatedText = truncatedText.substring(0, lastSpace);
-      }
-    }
-
-    return truncatedText + '...';
-  };
 
   return (
     <div className="card hover:shadow-xl transition-shadow duration-300">
@@ -154,23 +99,14 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onBookmarkToggle }) 
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <span className="text-2xl">{getContentTypeIcon(content.content_type)}</span>
-          <div>
-            {content.title && (
-              <Link
-                to={`/content/${content.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors cursor-pointer"
-              >
-                {content.title}
-              </Link>
-            )}
-          </div>
         </div>
         
         <div className="flex items-center space-x-2">
           <button
-            onClick={handleBookmarkToggle}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleBookmarkToggle();
+            }}
             disabled={isLoading}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
@@ -183,7 +119,10 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onBookmarkToggle }) 
           </button>
           
           <button
-            onClick={handleShare}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             title="Share"
           >
@@ -191,6 +130,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onBookmarkToggle }) 
           </button>
           
           <button
+            onClick={(e) => e.stopPropagation()}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             title="Report"
           >
@@ -200,22 +140,31 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onBookmarkToggle }) 
       </div>
 
       {/* Content */}
-      <div className="mb-4">
+      <div 
+        className="mb-4 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200"
+        onClick={() => window.open(`/content/${content.id}`, '_blank')}
+        title="Click to open in new tab"
+      >
         {content.rich_content ? (
-          <div
+          <div 
             className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: truncateHtmlContent(content.rich_content, 4) }}
+            dangerouslySetInnerHTML={{
+              __html: content.rich_content
+            }}
           />
         ) : (
-          <p className="text-gray-700 leading-relaxed">
-            {truncateContent(content.body, 4)}
+          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {content.body}
           </p>
         )}
       </div>
 
       {/* YouTube Video */}
       {content.youtube_url && (
-        <div className="mb-4 aspect-video">
+        <div 
+          className="mb-4 aspect-video"
+          onClick={(e) => e.stopPropagation()}
+        >
           <iframe
             width="100%"
             height="100%"

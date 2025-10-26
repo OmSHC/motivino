@@ -3,11 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@uiw/react-md-editor": "^4.0.8",
+    "@tiptap/extension-image": "^3.8.0",
+    "@tiptap/extension-link": "^3.8.0",
+    "@tiptap/extension-table": "^3.8.0",
+    "@tiptap/extension-table-cell": "^3.8.0",
+    "@tiptap/extension-table-header": "^3.8.0",
+    "@tiptap/extension-table-row": "^3.8.0",
+    "@tiptap/react": "^3.8.0",
+    "@tiptap/starter-kit": "^3.8.0",
     "axios": "^1.12.2",
+    "lucide-react": "^0.548.0",
     "react": "^19.1.1",
+    "react-contenteditable": "^3.3.7",
     "react-dom": "^19.1.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.3",
+    "remark-gfm": "^4.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -34,6 +45,7 @@
       "last 1 safari version"
     ]
   },
+  "proxy": "http://localhost:8000",
   "devDependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",

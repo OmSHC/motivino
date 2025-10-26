@@ -43,9 +43,12 @@ function App() {
     setUser(updatedUser);
   };
 
-  const handleAuthSuccess = (user: User, token: string) => {
+  const handleAuthSuccess = (user: User, token: string, sessionKey?: string) => {
     setUser(user);
     localStorage.setItem('access_token', token);
+    if (sessionKey) {
+      localStorage.setItem('session_key', sessionKey);
+    }
   };
 
   const handleAuthError = (error: string) => {

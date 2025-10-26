@@ -3,7 +3,7 @@ import { apiService } from '../../services/api';
 import { User } from '../../types';
 
 interface LoginFormProps {
-  onAuthSuccess: (user: User, token: string) => void;
+  onAuthSuccess: (user: User, token: string, sessionKey?: string) => void;
   onSwitchToSignup: () => void;
 }
 
@@ -35,7 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, onSwitchToSignup }
       });
 
       if (response.data.access_token) {
-        onAuthSuccess(response.data.user, response.data.access_token);
+        onAuthSuccess(response.data.user, response.data.access_token, response.data.session_key);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
@@ -56,7 +56,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, onSwitchToSignup }
       });
 
       if (response.data.access_token) {
-        onAuthSuccess(response.data.user, response.data.access_token);
+        onAuthSuccess(response.data.user, response.data.access_token, response.data.session_key);
       }
     } catch (err: any) {
       setError('Demo login failed');

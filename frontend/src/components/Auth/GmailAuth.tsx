@@ -3,7 +3,7 @@ import { apiService } from '../../services/api';
 import { User } from '../../types';
 
 interface GmailAuthProps {
-  onAuthSuccess: (user: User, token: string) => void;
+  onAuthSuccess: (user: User, token: string, sessionKey?: string) => void;
   onAuthError: (error: string) => void;
 }
 
@@ -29,9 +29,9 @@ const GmailAuth: React.FC<GmailAuthProps> = ({ onAuthSuccess, onAuthError }) => 
         first_name: 'Demo',
         last_name: 'Student'
       });
-      
+
       if (response.data.access_token) {
-        onAuthSuccess(response.data.user, response.data.access_token);
+        onAuthSuccess(response.data.user, response.data.access_token, response.data.session_key);
       }
     } catch (error) {
       console.error('Demo login failed:', error);
@@ -68,8 +68,8 @@ const GmailAuth: React.FC<GmailAuthProps> = ({ onAuthSuccess, onAuthError }) => 
         if (event.origin !== window.location.origin) return;
         
         if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
-          const { user, access_token } = event.data;
-          onAuthSuccess(user, access_token);
+          const { user, access_token, session_key } = event.data;
+          onAuthSuccess(user, access_token, session_key);
           popup?.close();
           clearInterval(checkClosed);
           window.removeEventListener('message', messageListener);
@@ -204,9 +204,9 @@ const GmailAuth: React.FC<GmailAuthProps> = ({ onAuthSuccess, onAuthError }) => 
                 first_name: 'Admin',
                 last_name: 'User'
               });
-              
+
               if (response.data.access_token) {
-                onAuthSuccess(response.data.user, response.data.access_token);
+                onAuthSuccess(response.data.user, response.data.access_token, response.data.session_key);
               }
             } catch (error) {
               console.error('Admin login failed:', error);

@@ -166,3 +166,4 @@ Never modify directly. Always align with project conventions, teach, confirm, an
 **Status:** ACTIVE
 
 
+Do not commit and push, Once needed user will ask commit and push.

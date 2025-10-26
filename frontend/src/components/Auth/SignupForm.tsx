@@ -3,7 +3,7 @@ import { apiService } from '../../services/api';
 import { User } from '../../types';
 
 interface SignupFormProps {
-  onAuthSuccess: (user: User, token: string) => void;
+  onAuthSuccess: (user: User, token: string, sessionKey?: string) => void;
   onSwitchToLogin: () => void;
 }
 
@@ -57,7 +57,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onAuthSuccess, onSwitchToLogin 
       });
 
       if (response.data.access_token) {
-        onAuthSuccess(response.data.user, response.data.access_token);
+        onAuthSuccess(response.data.user, response.data.access_token, response.data.session_key);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Signup failed. Please try again.');

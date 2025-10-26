@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Content } from '../../types';
 import { apiService } from '../../services/api';
-import MDEditor from '@uiw/react-md-editor';
+import TiptapEditor from '../Editor/TiptapEditor';
 
 interface UserStorySubmissionProps {
   user: User;
@@ -26,6 +26,10 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
       loadMySubmissions();
     }
   }, [showMySubmissions]);
+
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+  };
 
   const loadMySubmissions = async () => {
     try {
@@ -85,6 +89,7 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
       setLoading(false);
     }
   };
+
 
   const handleEdit = (submission: Content) => {
     setEditingSubmission(submission);
@@ -192,15 +197,20 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Content
             </label>
-            <MDEditor
-              value={content}
-              onChange={(val) => setContent(val || '')}
-              preview="edit"
-              height={300}
+            
+            <TiptapEditor
+              content={content}
+              onChange={handleContentChange}
+              placeholder="Start writing your story here... Use the toolbar above for formatting."
+              minHeight={300}
             />
+            
+            <p className="mt-2 text-sm text-gray-500">
+              💡 Tip: Use the toolbar above to format your text. You can add images, links, and see exactly how it will appear!
+            </p>
           </div>
 
           <div>

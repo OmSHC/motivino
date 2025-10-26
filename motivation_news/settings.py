@@ -134,7 +134,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # Temporarily disable OAuth2, use session auth
+        # Custom session token auth first, then fallback to session auth
+        'apps.users.auth_backends.SessionOrTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
@@ -159,6 +160,8 @@ OAUTH2_PROVIDER = {
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://winmind.in",
