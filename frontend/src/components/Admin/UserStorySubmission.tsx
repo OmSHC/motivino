@@ -6,9 +6,10 @@ import TiptapEditor from '../Editor/TiptapEditor';
 interface UserStorySubmissionProps {
   user: User;
   showMySubmissions?: boolean;
+  statusFilter?: 'approved' | 'pending' | 'rejected';
 }
 
-const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMySubmissions = false }) => {
+const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMySubmissions = false, statusFilter }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState('MOTIVATION');
@@ -99,6 +100,19 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
     setTargetGrade(submission.target_grade || null);
     setTargetSchool(submission.target_school || '');
     setYoutubeUrl(submission.youtube_url || '');
+  };
+
+  const handleDelete = async (submissionId: string) => {
+    if (window.confirm('Are you sure you want to delete this submission?')) {
+      try {
+        await apiService.deleteSubmission(submissionId);
+        setMySubmissions(mySubmissions.filter(sub => sub.id !== submissionId));
+        setSuccess('Submission deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting submission:', error);
+        setError('Failed to delete submission. Please try again.');
+      }
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -273,7 +287,9 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
           </h2>
 
           <div className="space-y-4">
-            {mySubmissions.map((submission) => (
+            {mySubmissions
+              .filter(submission => !statusFilter || submission.approval_status === statusFilter)
+              .map((submission) => (
               <div
                 key={submission.id}
                 className="border rounded-lg p-4 hover:border-primary-500 transition-colors"
@@ -296,14 +312,48 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
                   </div>
                 )}
 
-                {submission.approval_status === 'rejected' && (
-                  <button
-                    onClick={() => handleEdit(submission)}
-                    className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
-                  >
-                    ✏️ Edit and Resubmit
-                  </button>
-                )}
+                {/* Action buttons based on status */}
+                <div className="mt-3 flex space-x-2">
+                  {submission.approval_status === 'approved' && (
+                    <span className="text-sm text-gray-500">
+                      ✅ Approved - No actions available
+                    </span>
+                  )}
+                  
+                  {submission.approval_status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleEdit(submission)}
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(submission.id)}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </>
+                  )}
+                  
+                  {submission.approval_status === 'rejected' && (
+                    <>
+                      <button
+                        onClick={() => handleEdit(submission)}
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      >
+                        ✏️ Edit and Resubmit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(submission.id)}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
 

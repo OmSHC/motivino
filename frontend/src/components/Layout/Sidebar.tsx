@@ -100,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onProfileClick }) => {
                   `}
                 >
                   <CogIcon className="h-5 w-5" />
-                  <span className="font-medium">✨ Create Story</span>
+                  <span className="font-medium">📝 My Submission</span>
                 </Link>
               </>
             )}

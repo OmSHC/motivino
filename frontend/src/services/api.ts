@@ -80,6 +80,7 @@ export const apiService = {
   // User Story Submission
   submitStory: (data: any) => api.post('/content/submit-story/', data),
   getMySubmissions: () => api.get('/content/my-submissions/'),
+  deleteSubmission: (id: string) => api.delete(`/content/submissions/${id}/delete/`),
   
   // Admin Approval
   getPendingSubmissions: () => api.get('/content/admin/pending/'),

@@ -11,7 +11,9 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const isAdmin = user.role === 'ADMIN';
-  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'pending' | 'my-stories'>('create');
+  const [activeTab, setActiveTab] = useState<'approved' | 'pending' | 'rejected' | 'manage' | 'admin-pending' | 'admin-manage'>(
+    isAdmin ? 'admin-pending' : 'approved'
+  );
 
   return (
     <div className="max-w-7xl mx-auto py-6">
@@ -30,36 +32,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`
-              py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'create'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }
-            `}
-          >
-            {isAdmin ? 'Create Content' : '✨ Submit Story'}
-          </button>
-          
           {!isAdmin && (
-            <button
-              onClick={() => setActiveTab('my-stories')}
-              className={`
-                py-4 px-1 border-b-2 font-medium text-sm
-                ${activeTab === 'my-stories'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              📝 My Submissions
-            </button>
-          )}
-          
-          {isAdmin && (
             <>
+              <button
+                onClick={() => setActiveTab('approved')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'approved'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                ✅ Approved
+              </button>
               <button
                 onClick={() => setActiveTab('pending')}
                 className={`
@@ -70,13 +56,42 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                   }
                 `}
               >
+                ⏳ Pending
+              </button>
+              <button
+                onClick={() => setActiveTab('rejected')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'rejected'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                ❌ Rejected
+              </button>
+            </>
+          )}
+          
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => setActiveTab('admin-pending')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'admin-pending'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
                 🔔 Pending Approvals
               </button>
               <button
-                onClick={() => setActiveTab('manage')}
+                onClick={() => setActiveTab('admin-manage')}
                 className={`
                   py-4 px-1 border-b-2 font-medium text-sm
-                  ${activeTab === 'manage'
+                  ${activeTab === 'admin-manage'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
@@ -91,12 +106,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
       {/* Tab Content */}
       <div>
-        {activeTab === 'create' && (
-          isAdmin ? <ContentCreationForm /> : <UserStorySubmission user={user} />
+        {!isAdmin && (
+          <>
+            {activeTab === 'approved' && <UserStorySubmission user={user} showMySubmissions={true} statusFilter="approved" />}
+            {activeTab === 'pending' && <UserStorySubmission user={user} showMySubmissions={true} statusFilter="pending" />}
+            {activeTab === 'rejected' && <UserStorySubmission user={user} showMySubmissions={true} statusFilter="rejected" />}
+          </>
         )}
-        {activeTab === 'my-stories' && !isAdmin && <UserStorySubmission user={user} showMySubmissions={true} />}
-        {activeTab === 'pending' && isAdmin && <PendingApprovals />}
-        {activeTab === 'manage' && isAdmin && <ContentManagement />}
+        
+        {isAdmin && (
+          <>
+            {activeTab === 'admin-pending' && <PendingApprovals />}
+            {activeTab === 'admin-manage' && <ContentManagement />}
+          </>
+        )}
       </div>
     </div>
   );
