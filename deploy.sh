@@ -14,14 +14,29 @@ set -a
 source .env
 set +a
 
-echo "📦 Building and starting services..."
+echo "📥 Pulling latest code..."
+git pull origin main
 
-# Build and start services
-docker-compose -f docker-compose.prod.yml up --build -d
+echo "📦 Stopping existing services..."
+docker-compose -f docker-compose.prod.yml down
+
+echo "🧹 Cleaning up old images..."
+docker system prune -f
+
+echo "📦 Building and starting services with fresh build..."
+# Build with no cache to ensure latest changes are included
+docker-compose -f docker-compose.prod.yml build --no-cache
+
+# Start services
+docker-compose -f docker-compose.prod.yml up -d
 
 # Wait for services to be healthy
 echo "⏳ Waiting for services to be ready..."
 sleep 30
+
+# Check if services are running
+echo "🔍 Checking service status..."
+docker-compose -f docker-compose.prod.yml ps
 
 # Run migrations
 echo "🗄️ Running database migrations..."
