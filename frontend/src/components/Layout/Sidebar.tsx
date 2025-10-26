@@ -27,9 +27,10 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onProfileClick }) => {
   const menuItems = [
     { name: 'Inspire', path: '/', icon: HomeIcon },
     { name: 'For Me', path: '/news', icon: NewspaperIcon },
-    { name: 'Jokes', path: '/jokes', icon: FaceSmileIcon },
     { name: 'Quotations', path: '/quotations', icon: ChatBubbleLeftRightIcon },
     { name: 'Puzzles', path: '/stories', icon: BookOpenIcon },
+    { name: 'Jokes', path: '/jokes', icon: FaceSmileIcon },
+    { name: 'Tongue Twister', path: '/tongue-twister', icon: ChatBubbleLeftRightIcon },
     { name: 'Saved', path: '/saved', icon: BookmarkIcon },
   ];
 

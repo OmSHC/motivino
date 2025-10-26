@@ -35,10 +35,32 @@ const ContentDetail: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [isCountingDown, setIsCountingDown] = useState(false);
 
   useEffect(() => {
     loadContent();
   }, [id]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isCountingDown && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (isCountingDown && countdown === 0) {
+      setShowAnswer(true);
+      setIsCountingDown(false);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown, isCountingDown]);
+
+  const startCountdown = () => {
+    setCountdown(5);
+    setIsCountingDown(true);
+  };
 
   const loadContent = async () => {
     try {
@@ -280,6 +302,78 @@ const ContentDetail: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Puzzle Answer Section */}
+            {content.content_type === 'PUZZLE' && content.body && (
+              <div className="mb-8">
+                {!showAnswer && !isCountingDown ? (
+                  <div className="text-center">
+                    <button
+                      onClick={startCountdown}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-3 mx-auto"
+                    >
+                      <span className="text-2xl">🧩</span>
+                      <span className="text-lg">Show Answer</span>
+                      <span className="text-2xl">💡</span>
+                    </button>
+                    <p className="mt-3 text-gray-600 text-sm">
+                      Think you've solved it? Click to reveal the answer!
+                    </p>
+                  </div>
+                ) : isCountingDown ? (
+                  <div className="text-center">
+                    <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full w-32 h-32 mx-auto mb-6 flex items-center justify-center shadow-2xl animate-pulse">
+                      <span className="text-6xl font-bold text-white animate-bounce">
+                        {countdown}
+                      </span>
+                    </div>
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-6 shadow-lg">
+                      <div className="flex items-center justify-center space-x-3 mb-3">
+                        <span className="text-3xl animate-spin">⏰</span>
+                        <h3 className="text-xl font-bold text-orange-800">Get Ready!</h3>
+                        <span className="text-3xl animate-spin">⏰</span>
+                      </div>
+                      <p className="text-orange-700 text-lg">
+                        Answer will be revealed in {countdown} second{countdown !== 1 ? 's' : ''}...
+                      </p>
+                      <div className="mt-4">
+                        <div className="w-full bg-orange-200 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full transition-all duration-1000 ease-linear"
+                            style={{ width: `${((5 - countdown) / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-6 shadow-lg">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <span className="text-3xl">🎉</span>
+                      <h3 className="text-xl font-bold text-green-800">Answer</h3>
+                      <span className="text-3xl">✨</span>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-green-200">
+                      <p className="text-gray-800 text-lg leading-relaxed whitespace-pre-wrap">
+                        {content.body}
+                      </p>
+                    </div>
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={() => {
+                          setShowAnswer(false);
+                          setIsCountingDown(false);
+                          setCountdown(0);
+                        }}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                      >
+                        Hide Answer
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* YouTube Video */}
             {content.youtube_url && (

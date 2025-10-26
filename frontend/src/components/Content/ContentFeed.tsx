@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ContentCard from './ContentCard';
+import UnifiedStoryModal from '../Admin/UnifiedStoryModal';
 import { Content, User } from '../../types';
 import { apiService } from '../../services/api';
 
@@ -8,12 +9,34 @@ interface ContentFeedProps {
   user: User | null;
 }
 
+// Function to get dynamic submit button label based on content type
+const getSubmitButtonLabel = (contentType: string): string => {
+  switch (contentType) {
+    case 'MIXED':
+    case 'MOTIVATION':
+      return 'Submit Story';
+    case 'JOKES':
+      return 'Submit Joke';
+    case 'QUOTATION':
+      return 'Submit Quote';
+    case 'PUZZLE':
+      return 'Submit Puzzle';
+    case 'TONGUE_TWISTER':
+      return 'Submit Tongue Twister';
+    case 'SAVED':
+      return 'Submit Story';
+    default:
+      return 'Submit Story';
+  }
+};
+
 const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
   const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
 
   const loadContent = useCallback(async (pageNum: number = 1, reset: boolean = false) => {
@@ -110,6 +133,7 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
     'JOKES': '😄 Jokes',
     'QUOTATION': '💭 Quotations',
     'PUZZLE': '🧩 Puzzles',
+    'TONGUE_TWISTER': '🗣️ Tongue Twister',
     'SAVED': '⭐ Saved Items',
   };
 
@@ -119,6 +143,7 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
     'JOKES': 'Brighten your day with age-appropriate jokes and humor',
     'QUOTATION': 'Find inspiration in daily quotes from great minds',
     'PUZZLE': 'Challenge your mind with fun brain teasers and puzzles',
+    'TONGUE_TWISTER': 'Test your speaking skills with fun tongue twisters',
     'SAVED': 'Your bookmarked content and favorite stories',
   };
 
@@ -136,13 +161,28 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
   return (
     <div className="space-y-6 min-h-full">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {contentTypeTitles[contentType as keyof typeof contentTypeTitles] || contentType}
-        </h1>
-        <p className="text-gray-600">
-          {contentTypeDescriptions[contentType as keyof typeof contentTypeDescriptions] || 'Browse content'}
-        </p>
+      <div className="relative">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {contentTypeTitles[contentType as keyof typeof contentTypeTitles] || contentType}
+          </h1>
+          <p className="text-gray-600">
+            {contentTypeDescriptions[contentType as keyof typeof contentTypeDescriptions] || 'Browse content'}
+          </p>
+        </div>
+        
+        {/* Submit Story Button - Top Right */}
+        {user && (
+          <div className="absolute top-0 right-0">
+            <button
+              onClick={() => setIsStoryModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition-colors duration-200 flex items-center space-x-2"
+            >
+              <span>✨</span>
+              <span>{getSubmitButtonLabel(contentType)}</span>
+            </button>
+          </div>
+        )}
       </div>
 
 
@@ -187,6 +227,18 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ contentType, user }) => {
           )}
         </div>
       )}
+
+      {/* Unified Story Modal */}
+      <UnifiedStoryModal
+        isOpen={isStoryModalOpen}
+        onClose={() => setIsStoryModalOpen(false)}
+        onSuccess={() => {
+          // Refresh content after successful submission
+          loadContent(1, true);
+        }}
+        user={user}
+        defaultContentType={contentType}
+      />
     </div>
   );
 };

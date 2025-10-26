@@ -106,6 +106,7 @@ function App() {
                 <Route path="/jokes" element={<ContentFeed contentType="JOKES" user={user} />} />
                 <Route path="/quotations" element={<ContentFeed contentType="QUOTATION" user={user} />} />
                 <Route path="/stories" element={<ContentFeed contentType="PUZZLE" user={user} />} />
+                <Route path="/tongue-twister" element={<ContentFeed contentType="TONGUE_TWISTER" user={user} />} />
                 <Route path="/saved" element={<ContentFeed contentType="SAVED" user={user} />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/create-story" element={<AdminDashboard user={user} />} />
