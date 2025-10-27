@@ -78,10 +78,11 @@ services:
       - CI=false
     volumes:
       - frontend_build:/app/build_output
-    restart: "no"
+    restart: unless-stopped
     depends_on:
-      - backend
-    command: ["sh", "-c", "echo '🏗️ Building React app...' && npm run build && echo '📋 Build output:' && ls -la build/ && echo '📁 Copying to volume...' && mkdir -p /app/build_output && cp -r build/* /app/build_output/ && echo '✅ Files in volume:' && ls -la /app/build_output/ && echo '🎉 Frontend build complete!'"]
+      backend:
+        condition: service_healthy
+    command: ["sh", "-c", "echo '🏗️ Building React app...' && npm run build && echo '📋 Build output:' && ls -la build/ && echo '📁 Copying to volume...' && mkdir -p /app/build_output && cp -r build/* /app/build_output/ && echo '✅ Files in volume:' && ls -la /app/build_output/ && echo '🎉 Frontend build complete!' && echo '🔄 Keeping container alive...' && tail -f /dev/null"]
 
   nginx:
     image: nginx:alpine
@@ -97,8 +98,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      frontend:
-        condition: service_completed_successfully
     restart: unless-stopped
 
 volumes:
