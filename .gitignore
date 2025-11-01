@@ -91,4 +91,4 @@ coverage/
 *.temp
 
 # Docker
-.dockerignore
+# .dockerignore is now included in repo for Docker builds
