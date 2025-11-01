@@ -23,10 +23,10 @@ class User(AbstractUser):
     signup_date = models.DateTimeField(default=timezone.now)
     last_visit_date = models.DateField(null=True, blank=True)
     visit_days_count = models.IntegerField(default=0)
-    
+
     # Override username to use email
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = []  # Email is used as username, no additional required fields
     
     class Meta:
         db_table = 'users'
@@ -46,11 +46,18 @@ class User(AbstractUser):
         elif self.email:
             return self.email[0].upper()
         return "U"
-    
+
     def is_admin(self):
         """Check if user is admin."""
-        return self.role == 'ADMIN' or self.is_staff
-    
+        return self.role == 'ADMIN' or self.is_staff or self.is_superuser
+
+    def save(self, *args, **kwargs):
+        """Override save to ensure superusers have admin role."""
+        # Auto-set role to ADMIN for superusers and staff
+        if (self.is_superuser or self.is_staff) and self.role != 'ADMIN':
+            self.role = 'ADMIN'
+        super().save(*args, **kwargs)
+
     def update_visit_tracking(self):
         """Update visit tracking for the current day."""
         today = timezone.now().date()

@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'motivation_news.wsgi.application'
 # --------------------------------------------------------
 # Database (SQLite only)
 # --------------------------------------------------------
-DATABASE_PATH = os.environ.get("DATABASE_URL", "/app/db.sqlite3")
+DATABASE_PATH = os.environ.get("DATABASE_URL", str(BASE_DIR / "db.sqlite3"))
 
 DATABASES = {
     "default": {
@@ -98,10 +98,16 @@ DATABASES = {
     }
 }
 
-# Ensure database file exists (auto-create for fresh containers)
-os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
-if not os.path.exists(DATABASE_PATH):
-    open(DATABASE_PATH, 'a').close()
+# Ensure database directory exists and create file if needed (for production containers)
+try:
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+    if not os.path.exists(DATABASE_PATH):
+        open(DATABASE_PATH, 'a').close()
+except (OSError, PermissionError):
+    # Skip on read-only filesystems (local development)
+    pass
 
 # --------------------------------------------------------
 # Authentication

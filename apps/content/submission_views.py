@@ -114,7 +114,7 @@ def get_pending_submissions(request):
     Get all pending submissions for admin review.
     """
     try:
-        if request.user.role != 'ADMIN':
+        if not request.user.is_admin():
             return Response(
                 {'error': 'Admin access required'},
                 status=status.HTTP_403_FORBIDDEN
@@ -142,7 +142,7 @@ def approve_submission(request, content_id):
     Approve a pending submission (admin only).
     """
     try:
-        if request.user.role != 'ADMIN':
+        if not request.user.is_admin():
             return Response(
                 {'error': 'Admin access required'},
                 status=status.HTTP_403_FORBIDDEN
@@ -183,7 +183,7 @@ def reject_submission(request, content_id):
     Reject a pending submission with reason (admin only).
     """
     try:
-        if request.user.role != 'ADMIN':
+        if not request.user.is_admin():
             return Response(
                 {'error': 'Admin access required'},
                 status=status.HTTP_403_FORBIDDEN
