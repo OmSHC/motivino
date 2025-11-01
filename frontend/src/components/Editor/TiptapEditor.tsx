@@ -64,7 +64,8 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
-        style: `min-height: ${minHeight}px; padding: 16px;`,
+        style: `min-height: ${minHeight}px;`,
+        'data-placeholder': placeholder,
       },
     },
   });
@@ -216,19 +217,12 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 
       {/* Editor Content */}
       <div className="border border-t-0 border-gray-300 rounded-b-lg bg-white">
-        <EditorContent 
-          editor={editor} 
-          className="min-h-[300px] p-4 focus:outline-none"
+        <EditorContent
+          editor={editor}
+          className="min-h-[300px] focus:outline-none"
           style={{ minHeight: `${minHeight}px` }}
         />
       </div>
-
-      {/* Placeholder */}
-      {!content && (
-        <div className="absolute top-16 left-4 text-gray-400 pointer-events-none">
-          {placeholder}
-        </div>
-      )}
     </div>
   );
 };

@@ -140,3 +140,14 @@
   pointer-events: none;
   height: 0;
 }
+
+/* Ensure proper cursor positioning */
+.tiptap-editor-wrapper .ProseMirror {
+  cursor: text;
+}
+
+/* Fix click area issues */
+.tiptap-editor-wrapper .ProseMirror:focus {
+  outline: none;
+  cursor: text;
+}
