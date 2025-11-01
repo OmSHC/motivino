@@ -159,9 +159,11 @@ const UserStorySubmission: React.FC<UserStorySubmissionProps> = ({ user, showMyS
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-medium">
-                      {submission.title || 'Untitled Story'}
-                    </h3>
+                    {submission.approval_status !== 'approved' && submission.approval_status !== 'pending' && submission.approval_status !== 'rejected' && (
+                      <h3 className="font-medium">
+                        {submission.title || 'Untitled Story'}
+                      </h3>
+                    )}
                     <p className="text-sm text-gray-500 mt-1">
                       Submitted on {new Date(submission.created_at).toLocaleDateString()}
                     </p>
