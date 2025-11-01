@@ -132,6 +132,12 @@
   background-color: #dbeafe;
 }
 
+/* Override prose margins when applied to EditorContent */
+.tiptap-editor-wrapper .ProseMirror.prose p {
+  margin-bottom: 1em !important;
+  margin-top: 0 !important;
+}
+
 /* Placeholder styles */
 .tiptap-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);

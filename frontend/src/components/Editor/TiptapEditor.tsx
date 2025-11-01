@@ -63,7 +63,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
+        class: 'focus:outline-none',
         style: `min-height: ${minHeight}px;`,
         'data-placeholder': placeholder,
       },
