@@ -32,7 +32,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY motivation_news/ ./motivation_news/
 COPY apps/ ./apps/
 COPY manage.py .
-COPY db.sqlite3* ./
 
 # Copy built frontend from first stage
 COPY --from=frontend-builder /app/frontend/build ./static/

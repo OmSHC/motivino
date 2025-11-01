@@ -23,7 +23,7 @@ services:
     environment:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
-      - DATABASE_URL=/app/db.sqlite3
+      - DATABASE_URL=/app/db/db.sqlite3
       - REDIS_URL=redis://redis:6379/0
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend,136.115.200.36,winmind.in,www.winmind.in,${DOMAIN:-localhost},*
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000,https://winmind.in,https://www.winmind.in,https://${DOMAIN:-localhost}
@@ -33,6 +33,7 @@ services:
       - logs_data:/app/logs
       - staticfiles_data:/app/staticfiles
       - media_data:/app/media
+      - db_data:/app/db  # SQLite database persistence
     depends_on:
       redis:
         condition: service_healthy
@@ -83,3 +84,4 @@ volumes:
   media_data:
   frontend_build:
   nginx_logs:
+  db_data:  # SQLite database persistence
