@@ -5,6 +5,7 @@ Django settings for motivation_news project.
 import os
 from pathlib import Path
 from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -75,24 +76,43 @@ TEMPLATES = [
 WSGI_APPLICATION = 'motivation_news.wsgi.application'
 
 # Database
-database_engine = config('DATABASE_ENGINE', default='django.db.backends.sqlite3')
+DATABASE_URL = config('DATABASE_URL', default=None)
 
-DATABASES = {
-    'default': {
-        'ENGINE': database_engine,
-        'NAME': config('DATABASE_NAME', default=BASE_DIR / 'db.sqlite3'),
-        'USER': config('DATABASE_USER', default=''),
-        'PASSWORD': config('DATABASE_PASSWORD', default=''),
-        'HOST': config('DATABASE_HOST', default=''),
-        'PORT': config('DATABASE_PORT', default=''),
-    }
-}
+if DATABASE_URL:
+    # Use DATABASE_URL if provided (for production/docker)
+    if DATABASE_URL.startswith('/'):
+        # Direct path for SQLite (e.g., /app/db.sqlite3)
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': DATABASE_URL,
+            }
+        }
+    else:
+        # URL format for other databases
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL)
+        }
+else:
+    # Fallback to individual database settings (for development)
+    database_engine = config('DATABASE_ENGINE', default='django.db.backends.sqlite3')
 
-# Add OPTIONS only for PostgreSQL
-if database_engine == 'django.db.backends.postgresql':
-    DATABASES['default']['OPTIONS'] = {
-        'connect_timeout': 10,
+    DATABASES = {
+        'default': {
+            'ENGINE': database_engine,
+            'NAME': config('DATABASE_NAME', default=BASE_DIR / 'db.sqlite3'),
+            'USER': config('DATABASE_USER', default=''),
+            'PASSWORD': config('DATABASE_PASSWORD', default=''),
+            'HOST': config('DATABASE_HOST', default=''),
+            'PORT': config('DATABASE_PORT', default=''),
+        }
     }
+
+    # Add OPTIONS only for PostgreSQL
+    if database_engine == 'django.db.backends.postgresql':
+        DATABASES['default']['OPTIONS'] = {
+            'connect_timeout': 10,
+        }
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'

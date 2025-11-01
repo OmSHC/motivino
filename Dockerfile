@@ -8,11 +8,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (SQLite doesn't need extra packages)
 RUN apt-get update && apt-get install -y \
-    postgresql-client \
     build-essential \
-    libpq-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

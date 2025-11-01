@@ -1,21 +1,4 @@
 services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: motivation_news
-      POSTGRES_USER: motivation_user
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-motivation_password}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U motivation_user -d motivation_news"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
   redis:
     image: redis:7-alpine
     ports:
@@ -40,12 +23,7 @@ services:
     environment:
       - DEBUG=False
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=motivation_news
-      - DATABASE_USER=motivation_user
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-motivation_password}
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+      - DATABASE_URL=/app/db.sqlite3
       - REDIS_URL=redis://redis:6379/0
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend,136.115.200.36,winmind.in,www.winmind.in,${DOMAIN:-localhost},*
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000,https://winmind.in,https://www.winmind.in,https://${DOMAIN:-localhost}
@@ -56,8 +34,6 @@ services:
       - staticfiles_data:/app/staticfiles
       - media_data:/app/media
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
@@ -101,7 +77,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
   redis_data:
   logs_data:
   staticfiles_data:
