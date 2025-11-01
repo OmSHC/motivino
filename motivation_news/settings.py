@@ -5,7 +5,6 @@ Django settings for motivation_news project.
 import os
 from pathlib import Path
 from decouple import config
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,9 +15,15 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-producti
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
 
-# Application definition
+# --------------------------------------------------------
+# Applications
+# --------------------------------------------------------
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,6 +47,9 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+# --------------------------------------------------------
+# Middleware
+# --------------------------------------------------------
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -57,6 +65,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'motivation_news.urls'
 
+# --------------------------------------------------------
+# Templates
+# --------------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -75,86 +86,63 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'motivation_news.wsgi.application'
 
-# Database
-DATABASE_URL = config('DATABASE_URL', default=None)
+# --------------------------------------------------------
+# Database (SQLite only)
+# --------------------------------------------------------
+DATABASE_PATH = os.environ.get("DATABASE_URL", "/app/db.sqlite3")
 
-if DATABASE_URL:
-    # Use DATABASE_URL if provided (for production/docker)
-    if DATABASE_URL.startswith('/'):
-        # Direct path for SQLite (e.g., /app/db.sqlite3)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': DATABASE_URL,
-            }
-        }
-    else:
-        # URL format for other databases
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL)
-        }
-else:
-    # Fallback to individual database settings (for development)
-    database_engine = config('DATABASE_ENGINE', default='django.db.backends.sqlite3')
-
-    DATABASES = {
-        'default': {
-            'ENGINE': database_engine,
-            'NAME': config('DATABASE_NAME', default=BASE_DIR / 'db.sqlite3'),
-            'USER': config('DATABASE_USER', default=''),
-            'PASSWORD': config('DATABASE_PASSWORD', default=''),
-            'HOST': config('DATABASE_HOST', default=''),
-            'PORT': config('DATABASE_PORT', default=''),
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": DATABASE_PATH,
     }
+}
 
-    # Add OPTIONS only for PostgreSQL
-    if database_engine == 'django.db.backends.postgresql':
-        DATABASES['default']['OPTIONS'] = {
-            'connect_timeout': 10,
-        }
+# Ensure database file exists (auto-create for fresh containers)
+os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
+if not os.path.exists(DATABASE_PATH):
+    open(DATABASE_PATH, 'a').close()
 
-# Custom User Model
+# --------------------------------------------------------
+# Authentication
+# --------------------------------------------------------
 AUTH_USER_MODEL = 'users.User'
 
+# --------------------------------------------------------
 # Password validation
+# --------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# --------------------------------------------------------
 # Internationalization
+# --------------------------------------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# --------------------------------------------------------
+# Static & Media Files
+# --------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = []
 
-# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Django REST Framework
+# --------------------------------------------------------
+# REST Framework
+# --------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # Custom session token auth first, then fallback to session auth
         'apps.users.auth_backends.SessionOrTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -169,16 +157,17 @@ REST_FRAMEWORK = {
     ],
 }
 
-# OAuth2 Provider Settings
+# --------------------------------------------------------
+# OAuth2 Provider
+# --------------------------------------------------------
 OAUTH2_PROVIDER = {
-    'SCOPES': {
-        'read': 'Read scope',
-        'write': 'Write scope',
-    },
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope'},
     'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,
 }
 
-# CORS Settings
+# --------------------------------------------------------
+# CORS
+# --------------------------------------------------------
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1",
@@ -187,20 +176,27 @@ CORS_ALLOWED_ORIGINS = [
     "https://winmind.in",
     "https://www.winmind.in",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
-# Google OAuth2 Settings
+# --------------------------------------------------------
+# Google OAuth2
+# --------------------------------------------------------
 GOOGLE_OAUTH2_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
 GOOGLE_OAUTH2_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
 
-# OpenAI Settings
+# --------------------------------------------------------
+# OpenAI API
+# --------------------------------------------------------
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
 
+# --------------------------------------------------------
 # Admin Settings
+# --------------------------------------------------------
 ADMIN_EMAILS = config('ADMIN_EMAILS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
-# Celery Configuration
+# --------------------------------------------------------
+# Celery / Redis
+# --------------------------------------------------------
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
@@ -208,10 +204,14 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# Scheduler Settings
+# --------------------------------------------------------
+# Scheduler
+# --------------------------------------------------------
 SCHEDULER_CRON = config('SCHEDULER_CRON', default='0 30 5 * * *')
 
-# Logging - Console only to avoid file permission issues in Docker
+# --------------------------------------------------------
+# Logging (console only)
+# --------------------------------------------------------
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -220,10 +220,7 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
+        'simple': {'format': '{levelname} {message}', 'style': '{'},
     },
     'handlers': {
         'console': {
@@ -232,20 +229,15 @@ LOGGING = {
             'formatter': 'verbose',
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
+    'root': {'handlers': ['console'], 'level': 'INFO'},
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'apps': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
+        'django': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'apps': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
     },
 }
+
+# --------------------------------------------------------
+# Proxy / HTTPS Headers (for Nginx)
+# --------------------------------------------------------
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
